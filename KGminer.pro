@@ -7,7 +7,7 @@
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-QT       += core gui network sql
+QT       += core gui network sql ttt
 
 TARGET = KGminer
 TEMPLATE = app
