@@ -54,7 +54,7 @@ public:
 private:
     Ui::MainWindow *ui;
 
-    /* Widget */    
+    /* Widget */
     LatencyMon *latencymon;
     PickList *picklist;
 

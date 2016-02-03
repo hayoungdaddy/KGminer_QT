@@ -34,4 +34,55 @@ typedef struct
     QStringList elevM;
 } STAFILE;
 
+typedef struct
+{
+    QString binDir;
+    QString paramsDir;
+    QString scriptDir;
+    QString mseedDir;
+    QString tnkDir;
+    QString eventDir;
+    QString dbDir;
+    QString dbName;
+    QString tmpDir;
+} CFG;
+
+typedef struct
+{
+    QString filename;
+    QString description;
+    QStringList staName;
+    QStringList chanName;
+    QStringList locName;
+    QStringList netName;
+    QStringList latD;
+    QStringList lonD;
+    QStringList elevKm;
+    QStringList latM;
+    QStringList lonM;
+    QStringList elevM;
+} STATIONSET;
+
+
+class Util : public QWidget
+{
+    Q_OBJECT
+
+public:
+    explicit Util(QWidget *parent = 0);
+    ~Util();
+
+private:
+    CFG cfg;
+    STATIONSET stationSet;
+
+    void readCfg();
+    void readStationSet();
+
+signals:
+    void sendCFGtoMainWindow(CFG);
+    void sendStationSettoMainWindow(CFG);
+};
+
+
 #endif // UTIL_H

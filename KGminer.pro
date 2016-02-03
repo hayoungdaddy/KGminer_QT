@@ -7,7 +7,7 @@
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-QT       += core gui network sql ttt
+QT       += core gui network sql
 
 TARGET = KGminer
 TEMPLATE = app
@@ -32,7 +32,8 @@ SOURCES += main.cpp\
     datareciever.cpp \
     datamonitor.cpp \
     picklist.cpp \
-    filegenerator.cpp
+    filegenerator.cpp \
+    util.cpp
 
 HEADERS  += mainwindow.h \
     configstation.h \
@@ -54,7 +55,8 @@ HEADERS  += mainwindow.h \
     datareciever.h \
     datamonitor.h \
     picklist.h \
-    filegenerator.h
+    filegenerator.h \
+    util.h
 
 FORMS    += mainwindow.ui \
     filterpicker.ui \
