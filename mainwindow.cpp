@@ -12,6 +12,16 @@ MainWindow::MainWindow(QWidget *parent) :
 
     posx = 0; posy = 0;
 
+    /* get cfg */
+    util = new Util();
+    cfg = util->readCfg();
+
+    /* check ew process */
+    procscheckthred = new QThread(this);
+    checkewprocs = new CheckEWProcs(cfg);
+    checkewprocs->moveToThread(procscheckthred);
+    procscheckthred->start();
+
     /* Mainwindow GUI Dialog */
     latencymon = new LatencyMon(ui->statusFrame);
     latencymon->show();
@@ -50,8 +60,6 @@ MainWindow::MainWindow(QWidget *parent) :
     submenu->hide();
 
     /* Process Status Setup */
-    checkProcessTimer = new QTimer(this);
-    checkProcessTimer->start( 2000 );
 
     /* search pr file from eqproc */
     /* to run locator 1 */
@@ -75,9 +83,11 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->datarecieverB, SIGNAL(clicked()), this, SLOT(datarecieverButtonClicked()));
 
     /* Process Timer Connection */
-    connect(checkProcessTimer, SIGNAL(timeout()), this, SLOT(checkProcess()));
     /* Event search Timer connection */
     connect(prparserTimer, SIGNAL(timeout()), this, SLOT(runPrParser()));
+
+    /* Check EW Procs Thread */
+    connect(checkewprocs, SIGNAL(sendEWModuleListToMainwindow(EWMODULEINFO)), this, SLOT(recvEWModuleList(EWMODULEINFO)));
 
     /* Action Menu Connection */
     connect(ui->actionConfigStaInfo, SIGNAL(triggered()), this, SLOT(actionConfigStaInfoClicked()));
@@ -93,154 +103,83 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(sub2, SIGNAL(triggered()), this, SLOT(restartProcess()));
     connect(sub3, SIGNAL(triggered()), this, SLOT(changeParameterDialogShow()));
     //connect(sub4, SIGNAL(triggered()), this, SLOT(viewLog()));
+
+    ui->datarecieverB->setStyleSheet("background-color: rgb(255, 0, 0);color: rgb(255, 255, 255);");
+    ui->filterpickerB->setStyleSheet("background-color: rgb(255, 0, 0);color: rgb(255, 255, 255);");
+    ui->binderB->setStyleSheet("background-color: rgb(255, 0, 0);color: rgb(255, 255, 255);");
+    ui->loc1B->setStyleSheet("background-color: rgb(255, 0, 0);color: rgb(255, 255, 255);");
 }
 
 MainWindow::~MainWindow()
 {
+    procscheckthred->terminate();
     delete ui;
 }
 
-/* Timer slots */
-void MainWindow::checkProcess()
+void MainWindow::recvEWModuleList(EWMODULEINFO ewmoduleinfo)
 {
-    QString cmd = "sh " + SCRIPTDIR + "/checkProc.sh";
-    system(cmd.toLatin1().data());
+    //qDebug() << ewmoduleinfo.prName;
 
-    QFile file;
+    ui->datarecieverB->setStyleSheet("background-color: rgb(255, 0, 0);color: rgb(255, 255, 255);");
+    ui->filterpickerB->setStyleSheet("background-color: rgb(255, 0, 0);color: rgb(255, 255, 255);");
+    ui->binderB->setStyleSheet("background-color: rgb(255, 0, 0);color: rgb(255, 255, 255);");
+    ui->loc1B->setStyleSheet("background-color: rgb(255, 0, 0);color: rgb(255, 255, 255);");
 
-    file.setFileName(SCRIPTDIR + "/pid/pickfp.status");
-    if( file.open( QIODevice::ReadOnly ) )
+    for(int i=0;i<ewmoduleinfo.prName.count();i++)
     {
-        QTextStream stream(&file);
-        QString line;
-
-        line = stream.readLine();
-
-        if(line.startsWith("0"))
-        {
-            ui->filterpickerB->setStyleSheet("background-color: rgb(255, 0, 0);color: rgb(255, 255, 255);");
-        }
-        else if(line.startsWith("1"))
-        {
-            ui->filterpickerB->setStyleSheet("background-color: rgb(170, 255, 127);");
-        }
-        file.close();
-    }
-
-    file.setFileName(SCRIPTDIR + "/pid/binder.status");
-    if( file.open( QIODevice::ReadOnly ) )
-    {
-        QTextStream stream(&file);
-        QString line;
-
-        line = stream.readLine();
-
-        if(line.startsWith("0"))
-        {
-            ui->binderB->setStyleSheet("background-color: rgb(255, 0, 0);color: rgb(255, 255, 255);");
-        }
-        else if(line.startsWith("1"))
-        {
-            ui->binderB->setStyleSheet("background-color: rgb(170, 255, 127);");
-        }
-        file.close();
-    }
-
-    file.setFileName(SCRIPTDIR + "/pid/loc1.status");
-    if( file.open( QIODevice::ReadOnly ) )
-    {
-        QTextStream stream(&file);
-        QString line;
-        line = stream.readLine();
-        if(line.startsWith("0"))
-            ui->loc1B->setStyleSheet("background-color: rgb(255, 0, 0);color: rgb(255, 255, 255);");
-        else if(line.startsWith("1"))
-            ui->loc1B->setStyleSheet("background-color: rgb(170, 255, 127);");
-        file.close();
-    }
-
-    file.setFileName(SCRIPTDIR + "/pid/tankplayer.status");
-    if( file.open( QIODevice::ReadOnly ) )
-    {
-        QTextStream stream(&file);
-        QString line;
-        line = stream.readLine();
-        if(line.startsWith("0"))
-            ui->datarecieverB->setStyleSheet("background-color: rgb(255, 0, 0);color: rgb(255, 255, 255);");
-        else if(line.startsWith("1"))
+        if(ewmoduleinfo.prName[i].startsWith("tankplayer") && ewmoduleinfo.status[i].startsWith("Alive"))
             ui->datarecieverB->setStyleSheet("background-color: rgb(170, 255, 127);");
-        file.close();
+        else if(ewmoduleinfo.prName[i].startsWith("slink2ew") && ewmoduleinfo.status[i].startsWith("Alive"))
+            ui->datarecieverB->setStyleSheet("background-color: rgb(170, 255, 127);");
+        else if(ewmoduleinfo.prName[i].startsWith("pick_FP") && ewmoduleinfo.status[i].startsWith("Alive"))
+            ui->filterpickerB->setStyleSheet("background-color: rgb(170, 255, 127);");
+        else if(ewmoduleinfo.prName[i].startsWith("binder_ew") && ewmoduleinfo.status[i].startsWith("Alive"))
+            ui->binderB->setStyleSheet("background-color: rgb(170, 255, 127);");
+        else if(ewmoduleinfo.prName[i].startsWith("eqproc") && ewmoduleinfo.status[i].startsWith("Alive"))
+            ui->loc1B->setStyleSheet("background-color: rgb(170, 255, 127);");
     }
 }
 
+/* Timer slots */
 void MainWindow::runPrParser()
 {
-    /* find PR file */
-
-    /* call prparser */
-
-    //QString cmd = SCRIPTDIR + "/prparser.sh NLLOC &";
-    //system(cmd.toLatin1().data());
-
     QDir dir;
     dir.setPath( PARAMSDIR );
     QStringList files;
     QString filterName = "PR*";
     files = dir.entryList(QStringList(filterName), QDir::Files | QDir::NoSymLinks);
 
+    if(files.count() > 0)
+    {
+        for(int i=0;i<files.count();i++)
+        {
+            EventGenerator *eventgenerator = new EventGenerator(cfg, files[i]);
+        }
+    }
+    /*
     QString program = SCRIPTDIR + "/prparser.sh";
 
     char buffer[100];
 
     if(files.count() > 0)
     {
-        /*
-        int evid, orid, arid;
-
-        model->setQuery("SELECT max(evid) FROM event");
-        evid = model->record(0).value("max(evid)").toInt() + 1;
-        model->setQuery("SELECT max(orid) FROM origin");
-        orid = model->record(0).value("max(orid)").toInt() + 1;
-        model->setQuery("SELECT max(arid) FROM assoc");
-        arid = model->record(0).value("max(arid)").toInt() + 1;
-*/
         for(int i=0;i<files.count();i++)
         {
-            /*
-            QFile file;
-            file.setFileName(files[i]);
-            int fileline = 0;
-            if(file.open(QIODevice::ReadOnly))
-            {
-                QTextStream stream(&file);
-                QString line;
 
-                while(!stream.atEnd())
-                {
-                    line = stream.readLine();
-                    fileline++;
-                }
-                file.close();
-            }
-            */
             tmpnam( buffer );
             QString tempname(buffer);
 
             dir.rename(files[i], tempname);
 
-            //qDebug() << "-----------------------" + files[i] + " " + tempname + " " + QString::number(evid) + " " + QString::number(orid) + " " + QString::number(arid);
             qDebug() << "-----------------------" + files[i] + " " + tempname ;
 
             QStringList arguments;
-            //arguments << "NLLOC" << tempname << QString::number(evid) << QString::number(orid) << QString::number(arid);
             arguments << "NLLOC" << tempname ;
 
             process->startDetached(program, arguments);
-
-            //evid++; orid++;
-            //arid = arid + fileline;
         }
     }
+    */
 }
 
 /* Process slots */
@@ -268,7 +207,7 @@ void MainWindow::stopEWprocess()
                     QString::null, 1, 1 ) )
         {
             QString cmd = BINDIR + "/pau";
-            system(cmd.toLatin1().data());
+            //system(cmd.toLatin1().data());
         }
     }
     else
@@ -570,6 +509,7 @@ void MainWindow::actionExitClicked()
                     "Cancel",
                     QString::null, 1, 1 ) )
         {
+            /*
             QString cmd = BINDIR + "/pau";
             system(cmd.toLatin1().data());
             cmd = "kill `ps -ef | grep eventviewer | grep -v grep | awk '{print $2}'`";
@@ -580,7 +520,10 @@ void MainWindow::actionExitClicked()
             system(cmd.toLatin1().data());
             cmd = "kill `ps -ef | grep SeisGram | grep -v grep | awk '{print $2}'";
             system(cmd.toLatin1().data());
+            */
 
+            procscheckthred->quit();
+            //procscheckthred->terminate();
             close();
         }
     }
@@ -604,6 +547,8 @@ void MainWindow::actionExitClicked()
             cmd = "kill `ps -ef | grep SeisGram | grep -v grep | awk '{print $2}'";
             system(cmd.toLatin1().data());
 
+            procscheckthred->quit();
+            //procscheckthred->terminate();
             close();
         }
     }
@@ -657,8 +602,8 @@ void MainWindow::runSwarm()
 
 void MainWindow::eventViewerShow()
 {
-    eventmon = new EventMon( this );
-    eventmon->show();
+    //eventmon = new EventMon( this );
+    //eventmon->show();
 }
 
 void MainWindow::dataExtractorShow()

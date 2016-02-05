@@ -4,7 +4,7 @@
 #include <QDialog>
 #include <QFileDialog>
 
-#include "util.h"
+#include "common.h"
 #include "filegenerator.h"
 
 namespace Ui {

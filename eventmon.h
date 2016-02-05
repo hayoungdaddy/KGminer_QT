@@ -11,7 +11,7 @@
 #include <QTextEdit>
 #include <QProcess>
 
-#include "util.h"
+#include "common.h"
 #include "makeorigin.h"
 
 namespace Ui {

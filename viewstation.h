@@ -9,7 +9,7 @@
 #include <QPushButton>
 #include <QLabel>
 
-#include "util.h"
+#include "common.h"
 #include "filegenerator.h"
 
 namespace Ui {

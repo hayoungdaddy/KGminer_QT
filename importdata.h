@@ -6,8 +6,7 @@
 #include <QProcess>
 #include <QProgressBar>
 
-
-#include "util.h"
+#include "common.h"
 
 namespace Ui {
     class ImportData;

@@ -5,7 +5,7 @@
 #include <QUdpSocket>
 #include <QDateTime>
 
-#include "util.h"
+#include "common.h"
 
 typedef struct {
         int     pinno;

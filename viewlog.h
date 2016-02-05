@@ -4,7 +4,7 @@
 #include <QDialog>
 #include <QDir>
 
-#include "util.h"
+#include "common.h"
 
 namespace Ui {
     class ViewLog;

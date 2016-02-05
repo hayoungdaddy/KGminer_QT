@@ -6,7 +6,7 @@
 #include <QDateTime>
 #include <QProcess>
 
-#include "util.h"
+#include "common.h"
 
 namespace Ui {
     class DataReciever;

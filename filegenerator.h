@@ -1,7 +1,7 @@
 #ifndef FILEGENERATOR_H
 #define FILEGENERATOR_H
 
-#include "util.h"
+#include "common.h"
 
 namespace Ui {
     class FileGenerator;

@@ -33,7 +33,9 @@ SOURCES += main.cpp\
     datamonitor.cpp \
     picklist.cpp \
     filegenerator.cpp \
-    util.cpp
+    util.cpp \
+    checkewprocs.cpp \
+    eventgenerator.cpp
 
 HEADERS  += mainwindow.h \
     configstation.h \
@@ -56,7 +58,10 @@ HEADERS  += mainwindow.h \
     datamonitor.h \
     picklist.h \
     filegenerator.h \
-    util.h
+    util.h \
+    common.h \
+    checkewprocs.h \
+    eventgenerator.h
 
 FORMS    += mainwindow.ui \
     filterpicker.ui \

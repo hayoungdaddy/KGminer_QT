@@ -5,8 +5,12 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QTimer>
+#include <QThread>
 
+#include "common.h"
 #include "util.h"
+#include "checkewprocs.h"
+#include "eventgenerator.h"
 
 #include "configstation.h"
 #include "filterpicker.h"
@@ -51,10 +55,14 @@ public:
     QAction *sub4;
     QString parameterFileName;
 
+    CFG cfg;
+
 private:
     Ui::MainWindow *ui;
 
     /* Widget */
+    Util *util;
+    CheckEWProcs *checkewprocs;
     LatencyMon *latencymon;
     PickList *picklist;
 
@@ -73,7 +81,6 @@ private:
     DataExtractor *dataextractor;
     DataReciever *datareciever;
 
-    QTimer *checkProcessTimer;
     QTimer *prparserTimer;
 
     int posx, posy;
@@ -85,9 +92,11 @@ private:
     QSqlQueryModel *model;
     void openDB();
 
+    QThread *procscheckthred;
+
 public slots:
-    void checkProcess();
     void runPrParser();
+    void recvEWModuleList(EWMODULEINFO);
 
 private slots:
     /* Main Menu slots */

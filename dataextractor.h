@@ -8,7 +8,7 @@
 #include <QSqlRecord>
 #include <QSqlError>
 
-#include "util.h"
+#include "common.h"
 #include "selectstafile.h"
 #include "nlloc.h"
 

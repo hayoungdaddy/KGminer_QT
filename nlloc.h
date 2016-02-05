@@ -3,7 +3,7 @@
 
 #include <QDialog>
 
-#include "util.h"
+#include "common.h"
 
 namespace Ui {
     class NLLoc;

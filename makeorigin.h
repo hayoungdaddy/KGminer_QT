@@ -4,7 +4,7 @@
 #include <QDialog>
 
 #include "nlloc.h"
-#include "util.h"
+#include "common.h"
 
 namespace Ui {
     class MakeOrigin;

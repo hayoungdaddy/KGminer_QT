@@ -6,7 +6,7 @@
 #include <QList>
 #include <QVBoxLayout>
 
-#include "util.h"
+#include "common.h"
 
 namespace Ui {
     class FilterPicker;
