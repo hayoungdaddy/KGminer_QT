@@ -205,6 +205,12 @@ void NLLoc::genButtonClicked()
 
     if(TYPE == "SVM")
     {
+        QString cmd;
+        cmd = "mkdir " + MAINDIR + "/model";
+        system(cmd.toLatin1().data());
+        cmd = "mkdir " + MAINDIR + "/time";
+        system(cmd.toLatin1().data());
+
         file.setFileName(MAINDIR + "/grid_p.in");
         if( file.open( QIODevice::WriteOnly ) )
         {

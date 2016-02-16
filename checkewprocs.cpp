@@ -3,7 +3,7 @@
 CheckEWProcs::CheckEWProcs( CFG cfg )
 {
     QTimer* timer = new QTimer(this);
-    timer->start( 4000 );
+    timer->start( 1000 );
 
     c = cfg;
 

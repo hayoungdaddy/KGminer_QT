@@ -7,6 +7,7 @@
 #include <QSqlQueryModel>
 #include <QSqlRecord>
 #include <QSqlError>
+#include <QDateTime>
 #include <QDate>
 #include <QTimer>
 #include <QLinkedList>
