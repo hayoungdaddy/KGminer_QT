@@ -9,7 +9,6 @@
 #include <QSqlError>
 #include <QTimer>
 #include <QTextEdit>
-#include <QProcess>
 
 #include "common.h"
 #include "makeorigin.h"
@@ -31,7 +30,6 @@ public:
     void setEventTable();
     void setOriginTable(QString);
     void setAssocTable(QString);
-    void openDB();
 
     QString evid;
     QString orid;
@@ -43,7 +41,6 @@ public:
 private:
     Ui::EventMon *ui;
 
-    QSqlDatabase kgminerdb;
     QSqlQueryModel *model;
 
 public slots:

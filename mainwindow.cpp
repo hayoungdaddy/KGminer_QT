@@ -16,11 +16,20 @@ MainWindow::MainWindow(QWidget *parent) :
     util = new Util();
     cfg = util->readCfg();
 
+    /* open Database */
+    openDB();
+
     /* check ew process */
     procscheckthred = new QThread(this);
     checkewprocs = new CheckEWProcs(cfg);
     checkewprocs->moveToThread(procscheckthred);
     procscheckthred->start();
+
+    /* check Event */
+    eventcheckthred = new QThread(this);
+    eventgenerator = new EventGenerator(cfg);
+    eventgenerator->moveToThread(eventcheckthred);
+    eventcheckthred->start();
 
     /* Mainwindow GUI Dialog */
     latencymon = new LatencyMon(ui->statusFrame);
@@ -59,15 +68,6 @@ MainWindow::MainWindow(QWidget *parent) :
     //sub4 = submenu->addAction("View Logs");
     submenu->hide();
 
-    /* Process Status Setup */
-
-    /* search pr file from eqproc */
-    /* to run locator 1 */
-    prparserTimer = new QTimer(this);
-    prparserTimer->start( 1000 );
-
-    process = new QProcess(this);
-
     /* Main Menu Connection */
     connect(ui->stainfoButton, SIGNAL(clicked()), this, SLOT(stainfoViewerShow()));
     connect(ui->swarmButton, SIGNAL(clicked()), this, SLOT(showWave()));
@@ -81,10 +81,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->binderB, SIGNAL(clicked()), this, SLOT(binderButtonClicked()));
     connect(ui->loc1B, SIGNAL(clicked()), this, SLOT(loc1ButtonClicked()));
     connect(ui->datarecieverB, SIGNAL(clicked()), this, SLOT(datarecieverButtonClicked()));
-
-    /* Process Timer Connection */
-    /* Event search Timer connection */
-    connect(prparserTimer, SIGNAL(timeout()), this, SLOT(runPrParser()));
 
     /* Check EW Procs Thread */
     connect(checkewprocs, SIGNAL(sendEWModuleListToMainwindow(EWMODULEINFO)), this, SLOT(recvEWModuleList(EWMODULEINFO)));
@@ -116,6 +112,19 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::openDB()
+{
+    kgminerdb = QSqlDatabase::addDatabase("QSQLITE");
+    kgminerdb.setDatabaseName(DB);
+    if(!kgminerdb.open())
+    {
+        QMessageBox msgBox;
+        msgBox.setText(kgminerdb.lastError().text());
+        msgBox.exec();
+        return;
+    }
+}
+
 void MainWindow::recvEWModuleList(EWMODULEINFO ewmoduleinfo)
 {
     //qDebug() << ewmoduleinfo.prName;
@@ -138,48 +147,6 @@ void MainWindow::recvEWModuleList(EWMODULEINFO ewmoduleinfo)
         else if(ewmoduleinfo.prName[i].startsWith("eqproc") && ewmoduleinfo.status[i].startsWith("Alive"))
             ui->loc1B->setStyleSheet("background-color: rgb(170, 255, 127);");
     }
-}
-
-/* Timer slots */
-void MainWindow::runPrParser()
-{
-    QDir dir;
-    dir.setPath( PARAMSDIR );
-    QStringList files;
-    QString filterName = "PR*";
-    files = dir.entryList(QStringList(filterName), QDir::Files | QDir::NoSymLinks);
-
-    if(files.count() > 0)
-    {
-        for(int i=0;i<files.count();i++)
-        {
-            EventGenerator *eventgenerator = new EventGenerator(cfg, files[i]);
-        }
-    }
-    /*
-    QString program = SCRIPTDIR + "/prparser.sh";
-
-    char buffer[100];
-
-    if(files.count() > 0)
-    {
-        for(int i=0;i<files.count();i++)
-        {
-
-            tmpnam( buffer );
-            QString tempname(buffer);
-
-            dir.rename(files[i], tempname);
-
-            qDebug() << "-----------------------" + files[i] + " " + tempname ;
-
-            QStringList arguments;
-            arguments << "NLLOC" << tempname ;
-
-            process->startDetached(program, arguments);
-        }
-    }
-    */
 }
 
 /* Process slots */
@@ -602,8 +569,8 @@ void MainWindow::runSwarm()
 
 void MainWindow::eventViewerShow()
 {
-    //eventmon = new EventMon( this );
-    //eventmon->show();
+    eventmon = new EventMon( this );
+    eventmon->show();
 }
 
 void MainWindow::dataExtractorShow()

@@ -2,7 +2,6 @@
 #define VIEWLOG_H
 
 #include <QDialog>
-#include <QDir>
 
 #include "common.h"
 

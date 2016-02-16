@@ -2,7 +2,6 @@
 #define PICKLIST_H
 
 #include <QFrame>
-#include <QProcess>
 #include <QDate>
 #include <QTimer>
 

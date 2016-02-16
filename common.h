@@ -6,6 +6,8 @@
 #include <QMessageBox>
 #include <QTextCodec>
 #include <QDebug>
+#include <QDir>
+#include <QProcess>
 
 static QString HOMEDIR="/opt/KGminer/V1.0";
 static QString BINDIR="/opt/KGminer/V1.0/bin";
@@ -72,5 +74,17 @@ typedef struct
     QStringList status;
     QStringList argument;
 } EWMODULEINFO;
+
+typedef struct
+{
+    QString evName;
+    QStringList staName;
+    QStringList chanName;
+    QStringList locName;
+    QStringList phase;
+    QStringList dateTime;
+    QStringList sec;
+    QStringList msec;
+} PICKINFO;
 
 #endif // COMMON_H

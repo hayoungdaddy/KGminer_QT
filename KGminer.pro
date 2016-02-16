@@ -61,7 +61,8 @@ HEADERS  += mainwindow.h \
     util.h \
     common.h \
     checkewprocs.h \
-    eventgenerator.h
+    eventgenerator.h \
+    locator.h
 
 FORMS    += mainwindow.ui \
     filterpicker.ui \

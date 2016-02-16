@@ -10,8 +10,6 @@ EventMon::EventMon(QWidget *parent) :
 
     this->model = new QSqlQueryModel();
 
-    openDB();
-
     setEventTable();
     model->setQuery("SELECT max(evid) FROM event");
     evid = model->record(0).value("max(evid)").toString();
@@ -36,21 +34,7 @@ EventMon::EventMon(QWidget *parent) :
 
 EventMon::~EventMon()
 {
-    kgminerdb.close();
     delete ui;
-}
-
-void EventMon::openDB()
-{
-    kgminerdb = QSqlDatabase::addDatabase("QSQLITE");
-    kgminerdb.setDatabaseName(DB);
-    if(!kgminerdb.open())
-    {
-        QMessageBox msgBox;
-        msgBox.setText(kgminerdb.lastError().text());
-        msgBox.exec();
-        return;
-    }
 }
 
 void EventMon::setup()

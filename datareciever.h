@@ -4,7 +4,6 @@
 #include <QDialog>
 #include <QDate>
 #include <QDateTime>
-#include <QProcess>
 
 #include "common.h"
 

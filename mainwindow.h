@@ -62,7 +62,19 @@ private:
 
     /* Widget */
     Util *util;
+
+    QThread *procscheckthred;
     CheckEWProcs *checkewprocs;
+
+    QSqlDatabase kgminerdb;
+    QSqlQueryModel *model;
+    void openDB();
+
+    QThread *eventcheckthred;
+    EventGenerator *eventgenerator;
+
+    //QTimer *prparserTimer;
+
     LatencyMon *latencymon;
     PickList *picklist;
 
@@ -81,21 +93,14 @@ private:
     DataExtractor *dataextractor;
     DataReciever *datareciever;
 
-    QTimer *prparserTimer;
 
     int posx, posy;
     void setPosition();
 
-    QProcess *process;
 
-    QSqlDatabase kgminerdb;
-    QSqlQueryModel *model;
-    void openDB();
 
-    QThread *procscheckthred;
 
 public slots:
-    void runPrParser();
     void recvEWModuleList(EWMODULEINFO);
 
 private slots:

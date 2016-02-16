@@ -3,7 +3,6 @@
 
 #include <QDialog>
 #include <QFileDialog>
-#include <QProcess>
 #include <QProgressBar>
 #include <QPainter>
 #include <QCalendarWidget>
