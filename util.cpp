@@ -62,22 +62,22 @@ CFG Util::readCfg()
             }
             else if(line.startsWith("DBNAME"))
             {
-                cfg.DBNAME = line.section(":",1,1);
+                cfg.DBNAME = line.section("=",1,1);
                 continue;
             }
             else if(line.startsWith("PICKDIR"))
             {
-                cfg.PICKDIR = line.section(":",1,1);
+                cfg.PICKDIR = line.section("=",1,1);
                 continue;
             }
             else if(line.startsWith("TMPDIR"))
             {
-                cfg.TMPDIR = line.section(":",1,1);
+                cfg.TMPDIR = line.section("=",1,1);
                 continue;
             }
             else if(line.startsWith("LATENCYSOCKET"))
             {
-                cfg.LATENCYSOCKET = line.section(":",1,1);
+                cfg.LATENCYSOCKET = line.section("=",1,1);
                 continue;
             }
         }

@@ -31,6 +31,14 @@ MainWindow::MainWindow(QWidget *parent) :
     eventgenerator->moveToThread(eventcheckthred);
     eventcheckthred->start();
 
+    /* ActionMenu Dialogs */
+    importdata = new ImportData(cfg, this);
+    importdata->hide();
+    datamonitor = new DataMonitor(this);
+    datamonitor->hide();
+    selectstafile = new SelectStaFile(false, this);
+    selectstafile->hide();
+
     /* Mainwindow GUI Dialog */
     latencymon = new LatencyMon(ui->statusFrame);
     latencymon->show();
@@ -49,13 +57,6 @@ MainWindow::MainWindow(QWidget *parent) :
     viewlogTK = new ViewLog(this );
     viewlogTK->hide();
 
-    /* ActionMenu Dialogs */
-    importdata = new ImportData(this);
-    importdata->hide();
-    datamonitor = new DataMonitor(this);
-    datamonitor->hide();
-    selectstafile = new SelectStaFile(false, this);
-    selectstafile->hide();
 
     /* Mainbutton Dialogs */
 

@@ -4,8 +4,11 @@
 #include <QDialog>
 #include <QFileDialog>
 #include <QProgressBar>
+#include <QDateTime>
 
 #include "common.h"
+#include "libmseed.h"
+#include "lmplatform.h"
 
 namespace Ui {
     class ImportData;
@@ -16,11 +19,13 @@ class ImportData : public QDialog
     Q_OBJECT
 
 public:
-    explicit ImportData(QWidget *parent = 0);
+    explicit ImportData(CFG cfg, QWidget *parent = 0);
     ~ImportData();
 
     bool korean;
     void setup();
+
+    CFG c;
 
     void setLanguageEn();
     void setLanguageKo();
@@ -30,6 +35,7 @@ private:
     QTextCodec *codec;
 
     QStringList scnl;
+    void readMseedFile(QString, int);
 
 public slots:
 

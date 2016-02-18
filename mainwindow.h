@@ -73,8 +73,6 @@ private:
     QThread *eventcheckthred;
     EventGenerator *eventgenerator;
 
-    //QTimer *prparserTimer;
-
     LatencyMon *latencymon;
     PickList *picklist;
 

@@ -82,3 +82,15 @@ FORMS    += mainwindow.ui \
     datamonitor.ui \
     picklist.ui
 
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../libmseed/release/ -lmseed
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../libmseed/debug/ -lmseed
+else:unix: LIBS += -L$$PWD/../libmseed/ -lmseed
+
+INCLUDEPATH += $$PWD/../libmseed
+DEPENDPATH += $$PWD/../libmseed
+
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../libmseed/release/libmseed.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../libmseed/debug/libmseed.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../libmseed/release/mseed.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../libmseed/debug/mseed.lib
+else:unix: PRE_TARGETDEPS += $$PWD/../libmseed/libmseed.a
