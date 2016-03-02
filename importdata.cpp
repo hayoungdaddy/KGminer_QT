@@ -25,6 +25,7 @@ ImportData::~ImportData()
 
 void ImportData::setup()
 {
+    ui->status->setText("idle...");
     ui->tableWidget->clear();
     ui->tableWidget->setRowCount(0);
     ui->tableWidget->setColumnWidth(0, 360);
@@ -99,7 +100,6 @@ void ImportData::openFileBrowser()
         {
             //qDebug() << "not match";
             filteredFilenames << fileNames[i];
-            scnl << fileName;
         }
         else
         {
@@ -116,6 +116,8 @@ void ImportData::openFileBrowser()
 
         ui->pb->setRange(0, count);
         ui->pb->setValue(0);
+
+        scnl.clear();
 
         for(int i=0;i<count;i++)
         {
@@ -182,52 +184,39 @@ void ImportData::genButtonClicked()
     ui->pb->setRange(0, count);
     ui->pb->setValue(0);
 
+    ui->status->setText("Importing...");
     for(int i=0;i<count;i++)
     {
+
         ui->pb->setValue(i);
 
         QString cmd ;
-        cmd = c.BINDIR +"/scart -I " + ui->tableWidget->item(i,0)->text() + " " + c.MSEEDDIR;
+        cmd = c.BINDIR +"/scart -s -I " + ui->tableWidget->item(i,0)->text() + " " + c.MSEEDDIR;
         system(cmd.toLatin1().data());
     }
 
+    ui->status->setText("Sorting...");
     scnl.removeDuplicates();
-    //qDebug() << scnl;
 
-    /*
-
-
-    //    /data/mseed/2015/TS/G01/HGZ.D/TS.G01.00.HGZ.D.2015.336
-    //YYYY/STA/HGZ.D/TS.G01.00.HGZ.D.2016.015
-    //cmd = BINDIR + "/MSFiles2Sorted1File " +
     for(int i=0;i<scnl.count();i++)
     {
-        //TS_HSA_00_HGZ, 000000, D, 512, 602 samples, 100 Hz, 2016,019,22:00:00.000000
-        QString net,sta,loc,chan,year,jdate;
-        net = scnl[i].section(',',0,0).section('_',0,0);
-        sta = scnl[i].section(',',0,0).section('_',1,1);
-        loc = scnl[i].section(',',0,0).section('_',2,2);
-        chan = scnl[i].section(',',0,0).section('_',3,3);
-        year = scnl[i].section(' ',8,8).section(',',0,0);
-        jdate = scnl[i].section(' ',8,8).section(',',1,1);
-
-        QString unsort = c.MSEEDDIR + "/" + year + "/" + net + "/" + sta + "/" + chan + ".D/" + net + "." + sta + "." + loc + "." + chan + ".D." + year + "." + jdate;
-        QString sort = c.TMPDIR + "/tempdata";
-        QString cmd = c.BINDIR + "/MSFiles2Sorted1File " + unsort + " " + sort;
+        //qDebug() << scnl[i];
+        QString sort = c.TMPDIR + "/unsort";
+        QString cmd = c.BINDIR + "/MSFiles2Sorted1File " + scnl[i] + " " + sort;
         system(cmd.toLatin1().data());
-        cmd = "mv " + sort + " " + unsort;
+        cmd = "mv " + sort + " " + scnl[i];
         system(cmd.toLatin1().data());
-
-        //qDebug() << cmd;
     }
 
     ui->pb->setValue(count);
+
+    ui->status->setText("Idle...");
 
     QMessageBox msgBox;
     if(!korean) msgBox.setText("Completed data Importing.");
     else msgBox.setText(codec->toUnicode("데이터 입력을 완료하였습니다."));
     msgBox.exec();
-    */
+
 }
 
 void ImportData::readMseedFile(QString fileName, int i)
@@ -265,6 +254,13 @@ void ImportData::readMseedFile(QString fileName, int i)
     end.setTimeSpec(Qt::UTC);
     start.setTime_t( (double) MS_HPTIME2EPOCH(mstg->traces->starttime) );
     end.setTime_t( (double) MS_HPTIME2EPOCH(mstg->traces->endtime) + delta );
+
+    QDate date;
+    date = start.date();
+
+    scnl << c.MSEEDDIR + "/" + start.toString("yyyy") + "/" + mstg->traces->network + "/" + mstg->traces->station + "/" + mstg->traces->channel + ".D/"
+            + mstg->traces->network + "." + mstg->traces->station + "." + mstg->traces->location
+            + "." + mstg->traces->channel + ".D." + start.toString("yyyy") + "." + QString::number(date.dayOfYear());
 
     //qDebug() << QString::number(mstg->traces->samplecnt);
 

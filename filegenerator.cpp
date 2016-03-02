@@ -8,14 +8,6 @@ FileGenerator::FileGenerator(QWidget *parent) :
 FileGenerator::~FileGenerator()
 {
 }
-/*
-void pick_ew_gen(STAFILE);
-void pick_FP_gen(STAFILE);
-void binder_gen(STAFILE);
-void hinv_gen(STAFILE);
-void tanklist_gen(STAFILE);
-void ew2mseed_gen(STAFILE);
-*/
 
 void FileGenerator::pick_ew_gen(STAFILE stafile)
 {

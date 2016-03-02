@@ -91,12 +91,8 @@ private:
     DataExtractor *dataextractor;
     DataReciever *datareciever;
 
-
     int posx, posy;
     void setPosition();
-
-
-
 
 public slots:
     void recvEWModuleList(EWMODULEINFO);
