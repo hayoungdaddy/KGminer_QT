@@ -19,13 +19,14 @@ class DataMonitor : public QDialog
     Q_OBJECT
 
 public:
-    explicit DataMonitor(QWidget *parent = 0);
+    explicit DataMonitor(CFG cfg, QWidget *parent = 0);
     ~DataMonitor();
 
     bool korean;
     void setLanguageEn();
     void setLanguageKo();
     void setup();
+    CFG c;
 
 private:
     Ui::DataMonitor *ui;

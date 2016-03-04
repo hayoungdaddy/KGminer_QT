@@ -773,6 +773,7 @@ Viewer</string>
     <property name="title">
      <string>Help</string>
     </property>
+    <addaction name="actionAbout_KGminer"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuHelp"/>
@@ -840,6 +841,11 @@ Viewer</string>
   <action name="actionDataMonitor">
    <property name="text">
     <string>Data availlability monitor</string>
+   </property>
+  </action>
+  <action name="actionAbout_KGminer">
+   <property name="text">
+    <string>About KGminer</string>
    </property>
   </action>
  </widget>

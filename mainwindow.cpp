@@ -34,7 +34,7 @@ MainWindow::MainWindow(QWidget *parent) :
     /* ActionMenu Dialogs */
     importdata = new ImportData(cfg, this);
     importdata->hide();
-    datamonitor = new DataMonitor(this);
+    datamonitor = new DataMonitor(cfg, this);
     datamonitor->hide();
     selectstafile = new SelectStaFile(false, this);
     selectstafile->hide();

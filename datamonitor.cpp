@@ -1,13 +1,15 @@
 #include "datamonitor.h"
 #include "ui_datamonitor.h"
 
-DataMonitor::DataMonitor(QWidget *parent) :
+DataMonitor::DataMonitor(CFG cfg, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DataMonitor)
 {
     ui->setupUi(this);
     codec = QTextCodec::codecForName( "utf8" );
     korean=false;
+
+    c = cfg;
 
     connect(ui->calendarWidget, SIGNAL(currentPageChanged(int,int)), this, SLOT(changePage(int, int)));
     connect(ui->calendarWidget, SIGNAL(clicked(QDate)), this, SLOT(clickCalendar(QDate)));
@@ -70,11 +72,12 @@ void DataMonitor::changePage(int year, int month)
         QString temp;
         temp = QString::number(i);
         if(temp.count() == 1) temp = "00" + temp; else if(temp.count() == 2) temp = "0" + temp;
-        cmd = "find " + MSEEDDIR + " | grep " + QString::number(firstDayofMonth.year()) + "." + temp + " > " + TMPDIR + "/findFull";
+        cmd = "find " + c.MSEEDDIR + " | grep " + QString::number(firstDayofMonth.year()) + "." + temp + " > " + c.TMPDIR + "/findFull";
+        //qDebug() << cmd;
         system(cmd.toLatin1().data());
 
         QFile file;
-        file.setFileName(TMPDIR + "/findFull");
+        file.setFileName(c.TMPDIR + "/findFull");
 
         if(file.open(QIODevice::ReadOnly))
         {
@@ -109,7 +112,7 @@ void DataMonitor::clickCalendar(QDate date)
 
     for(int i=0;i<24;i++)
     {
-        ui->tableWidget->setColumnWidth(i, 25);
+        ui->tableWidget->setColumnWidth(i, 50);
     }
 
     sleep(0.5);
@@ -117,7 +120,7 @@ void DataMonitor::clickCalendar(QDate date)
     ui->pb->setValue(1);
 
     QString cmd;
-    cmd = "rm " + TMPDIR + "/msview.rt";
+    cmd = "rm " + c.TMPDIR + "/msview.rt";
     system(cmd.toLatin1().data());
 
     for(int i=0;i<24;i++)
@@ -135,13 +138,13 @@ void DataMonitor::clickCalendar(QDate date)
     temp = QString::number(seljday);
     if(temp.count() == 1) temp = "00" + temp; else if(temp.count() == 2) temp = "0" + temp;
 
-    cmd = SCRIPTDIR + "/findDataAbility.sh " + selYear + " " + temp;
+    cmd = c.SCRIPTDIR + "/findDataAbility.sh " + selYear + " " + temp;
     system(cmd.toLatin1().data());
 
     ui->pb->setValue(3);
 
     QFile file;
-    file.setFileName(TMPDIR + "/msview.rt");
+    file.setFileName(c.TMPDIR + "/msview.rt");
     if(file.open(QIODevice::ReadOnly))
     {
         QTextStream stream(&file);
@@ -160,11 +163,11 @@ void DataMonitor::clickCalendar(QDate date)
 
             QString temp = ui->tableWidget->item(0, hour)->text();
 
-            temp = sta + " " + temp;
+            temp = sta + "\n" + temp;
 
             ui->tableWidget->setItem(0, hour, new QTableWidgetItem(temp));
             ui->tableWidget->item(0, hour)->setTextAlignment(Qt::AlignCenter);
-            ui->tableWidget->setColumnWidth(hour, 40);
+            ui->tableWidget->setColumnWidth(hour, 50);
             //ui->tableWidget->item(0, hour)->setSelected(true);
         }
         file.close();
