@@ -1,13 +1,15 @@
 #include "datareciever.h"
 #include "ui_datareciever.h"
 
-DataReciever::DataReciever(QWidget *parent) :
+DataReciever::DataReciever(CFG cfg, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DataReciever)
 {
     ui->setupUi(this);
     codec = QTextCodec::codecForName( "utf8" );
     korean = false;
+
+    c = cfg;
 
     QDate today = QDate::currentDate();
     today = today.addDays(-1);
@@ -39,7 +41,7 @@ void DataReciever::extracButtonClicked()
 {
     /* gen tankplayer.d file */
     QFile file;
-    file.setFileName(PARAMSDIR + "/tankplayer.d");
+    file.setFileName(c.PARAMSDIR + "/tankplayer.d");
 
     if( file.open( QIODevice::WriteOnly ) )
     {
@@ -134,7 +136,7 @@ void DataReciever::extract()
     //qDebug() << QString::number(start) + " " + QString::number(end) + " " + QString::number(diff);
 
     QFile file;
-    file.setFileName(PARAMSDIR + "/sta.info");
+    file.setFileName(c.PARAMSDIR + "/sta.info");
     if( file.open( QIODevice::ReadOnly ) )
     {
         QTextStream stream(&file);
@@ -149,13 +151,13 @@ void DataReciever::extract()
             else
             {
                 // /2015/TS/G01/HGZ.D
-                scn = MSEEDDIR + "/" + year + "/" + line.section(' ', 3, 3) + "/" + line.section(' ', 0, 0) + "/" + line.section(' ', 1, 1) + ".D/*";
+                scn = c.MSEEDDIR + "/" + year + "/" + line.section(' ', 3, 3) + "/" + line.section(' ', 0, 0) + "/" + line.section(' ', 1, 1) + ".D/*";
                 QString cmd;
-                cmd = "qmerge -T -f " + startString + " -s " + QString::number(diff) + " -b 512 -o " + PARAMSDIR + "/DATA/" + line.section(' ', 0, 0) + ".mseed" + " " + scn;
+                cmd = "qmerge -T -f " + startString + " -s " + QString::number(diff) + " -b 512 -o " + c.PARAMSDIR + "/DATA/" + line.section(' ', 0, 0) + ".mseed" + " " + scn;
                 //qDebug() << cmd;
                 system(cmd.toLatin1().data());
 
-                cmd = "ms2tank " + PARAMSDIR + "/DATA/" + line.section(' ', 0, 0) + ".mseed >> " + PARAMSDIR + "/DATA/tbuf";
+                cmd = "ms2tank " + c.PARAMSDIR + "/DATA/" + line.section(' ', 0, 0) + ".mseed >> " + c.PARAMSDIR + "/DATA/tbuf";
                 system(cmd.toLatin1().data());
             }
         }
@@ -164,13 +166,13 @@ void DataReciever::extract()
     }
 
     QString cmd;
-    cmd = "remux_tbuf " + PARAMSDIR + "/DATA/tbuf " + PARAMSDIR + "/DATA/TANK";
+    cmd = "remux_tbuf " + c.PARAMSDIR + "/DATA/tbuf " + c.PARAMSDIR + "/DATA/TANK";
     system(cmd.toLatin1().data());
-    cmd = "rm " + PARAMSDIR + "/DATA/tbuf";
+    cmd = "rm " + c.PARAMSDIR + "/DATA/tbuf";
     system(cmd.toLatin1().data());
 
     /* reporting */
-    file.setFileName(PARAMSDIR + "/DATA/TANK");
+    file.setFileName(c.PARAMSDIR + "/DATA/TANK");
     if(file.open(QIODevice::ReadOnly))
     {
         if(file.size() == 0)
@@ -191,6 +193,6 @@ void DataReciever::extract()
 
 void DataReciever::viewWaveForm()
 {
-    QString cmd = SCRIPTDIR + "/runGeo.sh >> /dev/null 2>&1 &";
+    QString cmd = c.SCRIPTDIR + "/runGeo.sh >> /dev/null 2>&1 &";
     system(cmd.toLatin1().data());
 }

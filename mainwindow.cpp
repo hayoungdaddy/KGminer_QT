@@ -153,9 +153,9 @@ void MainWindow::recvEWModuleList(EWMODULEINFO ewmoduleinfo)
 /* Process slots */
 void MainWindow::startEWprocess()
 {
-    QString cmd = "source " + PARAMSDIR + "/ew_linux.bash";
+    QString cmd = "source " + cfg.PARAMSDIR + "/ew_linux.bash";
     system(cmd.toLatin1().data());
-    cmd = "sh " + SCRIPTDIR + "/autostart.sh &";
+    cmd = "sh " + cfg.SCRIPTDIR + "/autostart.sh &";
     system(cmd.toLatin1().data());
 
     latencymon->setup();
@@ -174,8 +174,8 @@ void MainWindow::stopEWprocess()
                     "Cancel",
                     QString::null, 1, 1 ) )
         {
-            QString cmd = BINDIR + "/pau";
-            //system(cmd.toLatin1().data());
+            QString cmd = cfg.BINDIR + "/pau";
+            system(cmd.toLatin1().data());
         }
     }
     else
@@ -187,7 +187,7 @@ void MainWindow::stopEWprocess()
                     codec->toUnicode("취소"),
                     QString::null, 1, 1 ) )
         {
-            QString cmd = BINDIR + "/pau";
+            QString cmd = cfg.BINDIR + "/pau";
             system(cmd.toLatin1().data());
         }
     }
@@ -244,15 +244,15 @@ void MainWindow::killProcess()
     QString cmd = "";
 
     if(parameterFileName == "tankplayer")
-        file.setFileName(SCRIPTDIR + "/pid/tankplayer.pid");
+        file.setFileName(cfg.SCRIPTDIR + "/pid/tankplayer.pid");
     else if(parameterFileName == "binder")
-        file.setFileName(SCRIPTDIR + "/pid/binder.pid");
+        file.setFileName(cfg.SCRIPTDIR + "/pid/binder.pid");
     else if(parameterFileName == "nlloc1" || parameterFileName == "grid1")
-        file.setFileName(SCRIPTDIR + "/pid/loc1.pid");
+        file.setFileName(cfg.SCRIPTDIR + "/pid/loc1.pid");
     else if(parameterFileName == "filterpicker")
-        file.setFileName(SCRIPTDIR + "/pid/pickfp.pid");
+        file.setFileName(cfg.SCRIPTDIR + "/pid/pickfp.pid");
     else if(parameterFileName == "ew2mseed")
-        file.setFileName(SCRIPTDIR + "/pid/ew2mseed.pid");
+        file.setFileName(cfg.SCRIPTDIR + "/pid/ew2mseed.pid");
 
     if( file.open( QIODevice::ReadOnly ) )
     {
@@ -261,9 +261,9 @@ void MainWindow::killProcess()
 
         line = stream.readLine();
 
-        cmd = BINDIR + "/pidpau " + line;
+        cmd = cfg.BINDIR + "/pidpau " + line;
         system(cmd.toLatin1().data());
-        cmd = BINDIR + "/status";
+        cmd = cfg.BINDIR + "/status";
         system(cmd.toLatin1().data());
         file.close();
     }
@@ -276,19 +276,19 @@ void MainWindow::restartProcess()
 
     if(parameterFileName == "tankplayer")
     {
-        file.setFileName(SCRIPTDIR + "/pid/tankplayer.pid");
+        file.setFileName(cfg.SCRIPTDIR + "/pid/tankplayer.pid");
         latencymon->setup();
         picklist->clear();
         picklist->setup();
     }
     else if(parameterFileName == "binder")
-        file.setFileName(SCRIPTDIR + "/pid/binder.pid");
+        file.setFileName(cfg.SCRIPTDIR + "/pid/binder.pid");
     else if(parameterFileName == "nlloc1" || parameterFileName == "grid1")
-        file.setFileName(SCRIPTDIR + "/pid/loc1.pid");
+        file.setFileName(cfg.SCRIPTDIR + "/pid/loc1.pid");
     else if(parameterFileName == "filterpicker")
-        file.setFileName(SCRIPTDIR + "/pid/pickfp.pid");
+        file.setFileName(cfg.SCRIPTDIR + "/pid/pickfp.pid");
     else if(parameterFileName == "ew2mseed")
-        file.setFileName(SCRIPTDIR + "/pid/ew2mseed.pid");
+        file.setFileName(cfg.SCRIPTDIR + "/pid/ew2mseed.pid");
 
     if( file.open( QIODevice::ReadOnly ) )
     {
@@ -297,7 +297,7 @@ void MainWindow::restartProcess()
 
         line = stream.readLine();
 
-        cmd = BINDIR + "/restart " + line;
+        cmd = cfg.BINDIR + "/restart " + line;
         system(cmd.toLatin1().data());
 
         file.close();
@@ -326,7 +326,7 @@ void MainWindow::changeParameterDialogShow()
     }
     else if(parameterFileName == "tankplayer")
     {
-        datareciever = new DataReciever( this );
+        datareciever = new DataReciever( cfg, this );
         datareciever->reset();
         datareciever->show();
     }
@@ -477,8 +477,7 @@ void MainWindow::actionExitClicked()
                     "Cancel",
                     QString::null, 1, 1 ) )
         {
-            /*
-            QString cmd = BINDIR + "/pau";
+            QString cmd = cfg.BINDIR + "/pau";
             system(cmd.toLatin1().data());
             cmd = "kill `ps -ef | grep eventviewer | grep -v grep | awk '{print $2}'`";
             system(cmd.toLatin1().data());
@@ -488,7 +487,6 @@ void MainWindow::actionExitClicked()
             system(cmd.toLatin1().data());
             cmd = "kill `ps -ef | grep SeisGram | grep -v grep | awk '{print $2}'";
             system(cmd.toLatin1().data());
-            */
 
             procscheckthred->quit();
             //procscheckthred->terminate();
@@ -504,7 +502,7 @@ void MainWindow::actionExitClicked()
                     codec->toUnicode("취소"),
                     QString::null, 1, 1 ) )
         {
-            QString cmd = BINDIR + "/pau";
+            QString cmd = cfg.BINDIR + "/pau";
             system(cmd.toLatin1().data());
             cmd = "kill `ps -ef | grep eventviewer | grep -v grep | awk '{print $2}'`";
             system(cmd.toLatin1().data());
@@ -558,7 +556,7 @@ void MainWindow::showWave()
 
 void MainWindow::runG()
 {
-    QString cmd = SCRIPTDIR + "/runGeo.sh >> /dev/null 2>&1 &";
+    QString cmd = cfg.SCRIPTDIR + "/runGeo.sh >> /dev/null 2>&1 &";
     system(cmd.toLatin1().data());
 }
 

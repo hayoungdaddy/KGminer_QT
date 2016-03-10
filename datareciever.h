@@ -16,10 +16,12 @@ class DataReciever : public QDialog
     Q_OBJECT
 
 public:
-    explicit DataReciever(QWidget *parent = 0);
+    explicit DataReciever(CFG cfg, QWidget *parent = 0);
     ~DataReciever();
 
     bool korean;
+
+    CFG c;
 
 private:
     Ui::DataReciever *ui;
