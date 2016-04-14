@@ -9,11 +9,11 @@ FileGenerator::~FileGenerator()
 {
 }
 
-void FileGenerator::pick_ew_gen(STAFILE stafile)
+void FileGenerator::pick_ew_gen(CFG c, STAFILE stafile)
 {
     /* generate pick_ew.KGminer file. */
     QFile file;
-    file.setFileName(PARAMSDIR + "/pick_ew.KGminer");
+    file.setFileName(c.PARAMSDIR + "/pick_ew.KGminer");
 
     int scnCount = stafile.staName.count();
 
@@ -36,11 +36,11 @@ void FileGenerator::pick_ew_gen(STAFILE stafile)
     }
 }
 
-void FileGenerator::pick_FP_gen(STAFILE stafile)
+void FileGenerator::pick_FP_gen(CFG c, STAFILE stafile)
 {
     /* generate pick_FP file. */
     QFile file;
-    file.setFileName(PARAMSDIR + "/pick_FP.KGminer");
+    file.setFileName(c.PARAMSDIR + "/pick_FP.KGminer");
 
     int scnCount = stafile.staName.count();
 
@@ -57,11 +57,11 @@ void FileGenerator::pick_FP_gen(STAFILE stafile)
     }
 }
 
-void FileGenerator::hinv_gen(STAFILE stafile)
+void FileGenerator::hinv_gen(CFG c, STAFILE stafile)
 {
     /* generate KGminer.hinv file. */
     QFile file;
-    file.setFileName(PARAMSDIR + "/KGminer.hinv");
+    file.setFileName(c.PARAMSDIR + "/KGminer.hinv");
 
     int scnCount = stafile.staName.count();
 
@@ -90,11 +90,11 @@ void FileGenerator::hinv_gen(STAFILE stafile)
     }
 }
 
-void FileGenerator::tanklist_gen(STAFILE stafile)
+void FileGenerator::tanklist_gen(CFG c, STAFILE stafile)
 {
     /* generate KGminer.tank_list file. */
     QFile file;
-    file.setFileName(PARAMSDIR + "/KGminer.tank_list");
+    file.setFileName(c.PARAMSDIR + "/KGminer.tank_list");
 
     int scnCount = stafile.staName.count();
 
@@ -113,11 +113,11 @@ void FileGenerator::tanklist_gen(STAFILE stafile)
     }
 }
 
-void FileGenerator::binder_gen(QString minLatforBinder, QString maxLatforBinder, QString minLonforBinder, QString maxLonforBinder)
+void FileGenerator::binder_gen(CFG c, QString minLatforBinder, QString maxLatforBinder, QString minLonforBinder, QString maxLonforBinder)
 {
     /* generate binder_ew.d file. */
     QFile file;
-    file.setFileName(PARAMSDIR + "/binder_ew.d");
+    file.setFileName(c.PARAMSDIR + "/binder_ew.d");
     if( file.open( QIODevice::WriteOnly ) )
     {
         QTextStream stream( &file ) ;
@@ -221,21 +221,21 @@ void FileGenerator::binder_gen(QString minLatforBinder, QString maxLatforBinder,
     }
 }
 
-void FileGenerator::ew2mseed_gen(STAFILE stafile)
+void FileGenerator::ew2mseed_gen(CFG c, STAFILE stafile)
 {
     /* generate ew2mseed.d file. */
     QFile file;
-    file.setFileName(PARAMSDIR + "/ew2mseed.d");
+    file.setFileName(c.PARAMSDIR + "/ew2mseed.d");
     int scnCount = stafile.staName.count();
 
     if( file.open( QIODevice::WriteOnly ) )
     {
         QTextStream stream( &file ) ;
 
-        stream << "MseedDir " + MSEEDDIR << "\n";
+        stream << "MseedDir " + c.MSEEDDIR << "\n";
         stream << "LogFile 2" << "\n";
         stream << "Verbosity 4" << "\n";
-        stream << "LockFile " + DATADIR +"/ew2mseed_1.lock" << "\n";
+        stream << "LockFile " + c.MSEEDDIR +"/ew2mseed_1.lock" << "\n";
         for(int i=0;i<scnCount;i++)
         {
             stream << "SCNLocSz " << stafile.staName[i] << " " << stafile.chanName[i] << " " << stafile.netName[i] << " " << stafile.locName[i] << " 512 STEIM2" << "\n";
@@ -249,110 +249,111 @@ void FileGenerator::ew2mseed_gen(STAFILE stafile)
     }
 }
 
-void FileGenerator::nlloc_gen(STAFILE stafile, QString avgLat, QString avgLon)
+// event == true : c.EVENTDIR + "/TMP/TMP/NLLOC1/" is basic dir
+// event == false : c.PARAMSDIR + "/NLLOC/1~3/" is basic dir
+// nlloc_gen function is making files for SVM mode only
+void FileGenerator::nlloc_gen(bool event, CFG c, STAFILE stafile, QString avgLat, QString avgLon)
 {
-    /* generate grid_p.in file */
-    QString vgout, vggrid, gtfiles, locgrid, locfiles;
-    QStringList layer;
-    QFile file;
+    QString mainDir;
+
+    if(event)
+        mainDir = c.EVENTDIR + "/TMP/TMP/NLLOC1";
+    else
+        mainDir = c.PARAMSDIR + "/NLLOC";
 
     double fst, lst;
     fst = avgLat.toDouble()-2;
     lst = avgLat.toDouble()+2;
 
-    qDebug() << avgLat + " " + avgLon;
-
     int scnCount = stafile.staName.count();
 
-    for(int j=1;j<=3;j++)
+    if(event)
     {
-        file.setFileName(PARAMSDIR + "/NLLOC/" + QString::number(j) + "/grid_p.in");
-        if( file.open( QIODevice::ReadOnly ) )
+        gen_type(mainDir + "/type");
+        gen_gridP(mainDir + "/grid_p.in", stafile, avgLat, avgLon, fst, lst, scnCount, c.EVENTDIR + "/TMP/TMP/NLLOC1");
+        gen_nllocIn(mainDir + "/nlloc.in", avgLat, avgLon, fst, lst, c.EVENTDIR + "/TMP/TMP/picklist" ,
+                    c.EVENTDIR + "/TMP/TMP/NLLOC1", c.EVENTDIR + "/TMP/TMP/LOC/NLLOC1");
+    }
+    else
+    {
+        for(int j=1;j<=3;j++)
         {
-            QTextStream stream(&file);
-            QString line;
-
-            while(!stream.atEnd())
-            {
-                line = stream.readLine();
-
-                if(line.startsWith("#") || line.isNull() || line.startsWith("["))
-                    continue;
-                else if(line.startsWith("VGOUT"))
-                    vgout = line;
-                else if(line.startsWith("VGGRID"))
-                    vggrid = line;
-                else if(line.startsWith("LAYER"))
-                    layer << line;
-                else if(line.startsWith("GTFILES"))
-                    gtfiles = line;
-            }
-            file.close();
+            gen_type(mainDir + "/" + QString::number(j) + "/type");
+            gen_gridP(mainDir + "/" + QString::number(j) + "/grid_p.in", stafile, avgLat, avgLon, fst, lst, scnCount,
+                      c.EVENTDIR + "/EVID/ORID/NLLOC" + QString::number(j));
+            gen_nllocIn(mainDir + "/" + QString::number(j) + "/nlloc.in", avgLat, avgLon, fst, lst,
+                        c.EVENTDIR + "/EVID/ORID/picklist" , c.EVENTDIR + "/EVID/ORID/NLLOC" + QString::number(j),
+                        c.EVENTDIR + "/EVID/ORID/LOC/NLLOC" + QString::number(j));
         }
-        if( file.open( QIODevice::WriteOnly ))
-        {
-            QTextStream stream( &file ) ;
-            // TRANS  LAMBERT  WGS-84  38.300629 127.320459  37 40  0.0
-            stream << "CONTROL 1 54321" << "\n";
-            stream << "TRANS LAMBERT WGS-84 " << avgLat << " " << avgLon << " " << QString::number(fst) << " " << QString::number(lst) << " 0.0" << "\n";
-            stream << vgout << "\n";
-            stream << "VGTYPE P" << "\n";
-            stream << vggrid << "\n";
-            for(int i=0;i<layer.count();i++)
-                stream << layer[i] << "\n";
-            stream << gtfiles << "\n";
-            stream << "GTMODE GRID3D ANGLES_NO" << "\n";
-            for(int i=0;i<scnCount;i++)
-                stream << "GTSRCE " << stafile.staName[i] << " LATLON " << stafile.latD[i] << " " << stafile.lonD[i] << " 0 " << stafile.elevKm[i] << "\n";
-            stream << "GT_PLFD  1.0e-3  0" << "\n";
+    }
+}
 
-            file.close();
-        }
+void FileGenerator::gen_type(QString filename)
+{
+    QFile file;
+    file.setFileName(filename);
+    if( file.open( QIODevice::WriteOnly ))
+    {
+        QTextStream stream( &file ) ;
+        stream << "SVM" << "\n";
+        file.close();
+    }
+}
 
-        file.setFileName(PARAMSDIR + "/NLLOC/" + QString::number(j) + "/nlloc.in");
-        if( file.open( QIODevice::ReadOnly ) )
-        {
-            QTextStream stream(&file);
-            QString line;
+void FileGenerator::gen_gridP(QString filename, STAFILE stafile, QString avgLat, QString avgLon, double fst, double lst, int scnCount, QString path)
+{
+    QFile file;
+    file.setFileName(filename);
+    if( file.open( QIODevice::WriteOnly ))
+    {
+        QTextStream stream( &file ) ;
+        stream << "CONTROL 1 54321" << "\n";
+        stream << "TRANS LAMBERT WGS-84 " << avgLat << " " << avgLon << " " << QString::number(fst) << " " << QString::number(lst) << " 0.0" << "\n";
+        stream << "VGOUT " + path + "/model/layer" << "\n";
+        stream << "VGTYPE P" << "\n";
+        stream << "VGGRID  6 6 2 -2.5 -2.5 -0.5 1 1 1  SLOW_LEN" << "\n";
+        stream << "LAYER 0.0 4.0 0.0" << "\n";
+        stream << "GTFILES  " + path + "/model/layer " +
+                  path + "/time/layer P" << "\n";
+        stream << "GTMODE GRID3D ANGLES_NO" << "\n";
+        for(int i=0;i<scnCount;i++)
+            stream << "GTSRCE " << stafile.staName[i] << " LATLON " << stafile.latD[i] << " " << stafile.lonD[i] << " 0 " << stafile.elevKm[i] << "\n";
+        stream << "GT_PLFD  1.0e-3  0" << "\n";
 
-            while(!stream.atEnd())
-            {
-                line = stream.readLine();
+        file.close();
+    }
+}
 
-                if(line.startsWith("#") || line.isNull() || line.startsWith("["))
-                    continue;
-                else if(line.startsWith("LOCGRID"))
-                    locgrid = line;
-                else if(line.startsWith("LOCFILES"))
-                    locfiles = line;
-            }
-            file.close();
-        }
-        if( file.open( QIODevice::WriteOnly ))
-        {
-            QTextStream stream( &file ) ;
-            stream << "CONTROL 1 54321" << "\n";
-            stream << "TRANS LAMBERT WGS-84 " << avgLat << " " << avgLon << " " << QString::number(fst) << " " << QString::number(lst) << " 0.0" <<  "\n";
-            stream << "LOCSIG  KGminer" << "\n";
-            stream << "LOCCOM KGminer" << "\n";
-            stream << "LOCMETH  EDT_OT_WT 1.0e6 2 25  -1 -1.80 6 -1.0 0" << "\n";
-            stream << "LOCHYPOUT  SAVE_NLLOC_ALL SAVE_HYPOINVERSE_Y2000_ARC" << "\n";
-            stream << "LOCGAU 0.5 0.0" << "\n";
-            stream << "LOCGAU2 0.02 0.1 2.0" << "\n";
-            stream << "LOCPHASEID  P   P p G PN Pn P* Pg PG Pb PB" << "\n";
-            stream << "LOCPHASEID  S   S s G SN Sn S* Sg SG Sb SB" << "\n";
-            stream << "LOCQUAL2ERR 0.1 0.2 0.5 1.0 99999.9" << "\n";
-            stream << "LOCSEARCH  OCT 10 10 4 0.01 10000 5000 0 1" << "\n";
-            stream << locgrid << "\n";
-            stream << "LOCPHSTAT 9999.0 -1 9999.0 1.0 1.0 9999.9 -9999.9 9999.9" << "\n";
-            stream << "LOCANGLES ANGLES_NO 5" << "\n";
-            stream << "LOCMAG  ML_HB 1.0 1.110 0.00189" << "\n";
-            stream << "LOCELEVCORR 1 5.8 3.46" << "\n";
-            stream << "LOCSTAWT 0 -1.0" << "\n";
-            stream << locfiles << "\n";
-            stream << "LOCHYPOUT SAVE_HYPOINVERSE_Y2000_ARC" << "\n";
+void FileGenerator::gen_nllocIn(QString filename, QString avgLat, QString avgLon, double fst, double lst, QString path1, QString path2, QString path3)
+{
+    QFile file;
+    file.setFileName(filename);
+    if( file.open( QIODevice::WriteOnly ))
+    {
+        QTextStream stream( &file ) ;
 
-            file.close();
-        }
+        stream << "CONTROL 1 54321" << "\n";
+        stream << "TRANS LAMBERT WGS-84 " << avgLat << " " << avgLon << " " << QString::number(fst) << " " << QString::number(lst) << " 0.0" <<  "\n";
+        stream << "LOCSIG  KGminer" << "\n";
+        stream << "LOCCOM KGminer" << "\n";
+        stream << "LOCMETH  EDT_OT_WT 1.0e6 2 25  -1 -1.80 6 -1.0 0" << "\n";
+        stream << "LOCHYPOUT  SAVE_NLLOC_ALL SAVE_HYPOINVERSE_Y2000_ARC" << "\n";
+        stream << "LOCGAU 0.5 0.0" << "\n";
+        stream << "LOCGAU2 0.02 0.1 2.0" << "\n";
+        stream << "LOCPHASEID  P   P p G PN Pn P* Pg PG Pb PB" << "\n";
+        stream << "LOCPHASEID  S   S s G SN Sn S* Sg SG Sb SB" << "\n";
+        stream << "LOCQUAL2ERR 0.1 0.2 0.5 1.0 99999.9" << "\n";
+        stream << "LOCSEARCH  OCT 10 10 4 0.01 10000 5000 0 1" << "\n";
+        stream << "LOCGRID  321 321 101 -1.6 -1.6 -0.5 0.01 0.01 0.01  PROB_DENSITY SAVE" << "\n";
+        stream << "LOCPHSTAT 9999.0 -1 9999.0 1.0 1.0 9999.9 -9999.9 9999.9" << "\n";
+        stream << "LOCANGLES ANGLES_NO 5" << "\n";
+        stream << "LOCMAG  ML_HB 1.0 1.110 0.00189" << "\n";
+        stream << "LOCELEVCORR 1 5.8 3.46" << "\n";
+        stream << "LOCSTAWT 0 -1.0" << "\n";
+        stream << "LOCFILES " + path1 + " HYPOINVERSE_Y2000_ARC " + path2 +
+                  "/time/layer " + path3 << "\n";
+        stream << "LOCHYPOUT SAVE_HYPOINVERSE_Y2000_ARC" << "\n";
+
+        file.close();
     }
 }
