@@ -20,13 +20,11 @@ class ViewStation : public QDialog
     Q_OBJECT
 
 public:
-    explicit ViewStation(QWidget *parent = 0);
+    explicit ViewStation(CFG cfg, bool _korean = 0, QWidget *parent = 0);
     ~ViewStation();
 
     bool korean;
-    void setLanguageEn();
-    void setLanguageKo();
-    void setup();
+    CFG c;
 
     int count;
 

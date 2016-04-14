@@ -251,7 +251,6 @@ void EventGenerator::prParser(QString evname)
                         + dataDir +"/" + eventTime.toString("yyyy") + "/" + net + "/" + sta + "/" + chan + ".D/* >> /dev/null 2>&1";
                 //qDebug() << cmd;
                 system(cmd.toLatin1().data());
-
             }
         }
         file.close();

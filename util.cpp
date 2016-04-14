@@ -87,9 +87,3 @@ CFG Util::readCfg()
 
     return cfg;
 }
-
-void Util::readStationSet()
-{
-    STATIONSET stationset;
-    emit sendStationSettoMainWindow(stationset);
-}

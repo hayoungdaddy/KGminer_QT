@@ -21,13 +21,11 @@ class ConfigStation : public QDialog
     Q_OBJECT
 
 public:
-    explicit ConfigStation(QWidget *parent = 0);
+    explicit ConfigStation(CFG cfg, bool _korean = 0, QWidget *parent = 0);
     ~ConfigStation();
 
     bool korean;
-    void setLanguageEn();
-    void setLanguageKo();
-    void setup();
+    CFG c;
 
 private:
     QTextCodec *codec;

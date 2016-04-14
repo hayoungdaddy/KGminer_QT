@@ -14,13 +14,14 @@ class ViewLog : public QDialog
     Q_OBJECT
 
 public:
-    explicit ViewLog(QWidget *parent = 0);
+    explicit ViewLog(CFG cfg, QWidget *parent = 0);
     ~ViewLog();
 
     bool korean;
     void setLanguageEn();
     void setLanguageKo();
     void setup(QString);
+    CFG c;
 
 private:
     Ui::ViewLog *ViewLog_ui;

@@ -1,17 +1,25 @@
 #include "filterpicker.h"
 #include "ui_filterpicker.h"
 
-FilterPicker::FilterPicker(QWidget *parent) :
+FilterPicker::FilterPicker(CFG cfg, bool _korean, QWidget *parent) :
     QDialog(parent)
 {
+    codec = QTextCodec::codecForName( "utf8" );
+    korean = _korean;
+
+    c = cfg;
+
     QVBoxLayout *mainlayout = new QVBoxLayout(this);
     QHBoxLayout *labellayout = new QHBoxLayout;
     layout = new QVBoxLayout;
     QHBoxLayout *buttonlayout = new QHBoxLayout;
 
-    setWindowTitle("Config filterPicker parameters.");
+    if(korean)
+        setWindowTitle(codec->toUnicode("Filter Picker 설정 값 변경"));
+    else
+        setWindowTitle("Config filterPicker parameters.");
 
-    QLabel* label = new QLabel[6];
+    QLabel *label = new QLabel[6];
     label[0].setText("S/C/N Name");
     label[1].setText("filterWindow");
     label[2].setText("longTermWindow");
@@ -21,16 +29,23 @@ FilterPicker::FilterPicker(QWidget *parent) :
 
     for(int i=0;i<6;i++)
     {
-        //label[i].setFrameShape(QFrame::Box);
-        //label[i].setStyleSheet("background-color: rgb(170, 255, 0);");
         label[i].setAlignment(Qt::AlignCenter);
         labellayout->addWidget(&label[i]);
     }
 
     QPushButton *okButton = new QPushButton;
     QPushButton *noButton = new QPushButton;
-    okButton->setText("Generate");
-    noButton->setText("Cancel");
+
+    if(korean)
+    {
+        okButton->setText(codec->toUnicode("변경"));
+        noButton->setText(codec->toUnicode("취소"));
+    }
+    else
+    {
+        okButton->setText("Generate");
+        noButton->setText("Cancel");
+    }
 
     buttonlayout->addWidget(okButton);
     buttonlayout->addWidget(noButton);
@@ -39,7 +54,7 @@ FilterPicker::FilterPicker(QWidget *parent) :
     mainlayout->addLayout(layout);
     mainlayout->addLayout(buttonlayout);
 
-    QFile file(PARAMSDIR + "/pick_FP.KGminer");
+    QFile file(c.PARAMSDIR + "/pick_FP.KGminer");
     if( file.open( QIODevice::ReadOnly ) )
     {
         QTextStream stream(&file);
@@ -112,8 +127,6 @@ void FilterPicker::lineedit_textChanged(QString text)
     QObject *obj = QObject::sender();
     QString senderobjName = obj->objectName();
 
-    //qDebug() << senderobjName;
-
     int i = senderobjName.section('_', 1, 1).toInt() - 1;
     int j = senderobjName.section('_', 2, 2).toInt() - 1;
 
@@ -127,7 +140,7 @@ void FilterPicker::lineedit_textChanged(QString text)
 void FilterPicker::genButtonClicked()
 {
     QFile file;
-    file.setFileName(PARAMSDIR + "/pick_FP.KGminer");
+    file.setFileName(c.PARAMSDIR + "/pick_FP.KGminer");
 
     if( file.open( QIODevice::WriteOnly ) )
     {
@@ -142,7 +155,10 @@ void FilterPicker::genButtonClicked()
     }
 
     QMessageBox msgBox;
-    msgBox.setText("Completed file generation.");
+    if(korean)
+        msgBox.setText(codec->toUnicode("설정 값 변경 완료"));
+    else
+        msgBox.setText("Completed a file generation.");
     msgBox.exec();
 
     accept();

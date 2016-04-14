@@ -14,12 +14,6 @@ public:
     ~Util();
 
     CFG readCfg();
-    void readStationSet();
-
-private:
-
-signals:
-    void sendStationSettoMainWindow(STATIONSET);
 };
 
 

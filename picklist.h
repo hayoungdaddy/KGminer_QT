@@ -16,11 +16,13 @@ class PickList : public QFrame
     Q_OBJECT
     
 public:
-    explicit PickList(QWidget *parent = 0);
+    explicit PickList(CFG cfg, QWidget *parent = 0);
     ~PickList();    
 
     void setup();
     void clear();
+
+    CFG c;
 
     QProcess *pickProcess;
 

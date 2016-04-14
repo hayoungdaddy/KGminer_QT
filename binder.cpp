@@ -1,13 +1,22 @@
 #include "binder.h"
 #include "ui_binder.h"
 
-Binder::Binder(QWidget *parent) :
+Binder::Binder(CFG cfg, bool _korean, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Binder)
 {
     ui->setupUi(this);
     codec = QTextCodec::codecForName( "utf8" );
-    korean=false;
+    korean = _korean;
+
+    if(korean)
+        setLanguageKo();
+    else
+        setLanguageEn();
+
+    c = cfg;
+
+    setup();
 
     connect(ui->quitButton, SIGNAL(clicked()), this, SLOT(accept()));
     connect(ui->genButton, SIGNAL(clicked()), this, SLOT(genButtonClicked()));
@@ -20,7 +29,7 @@ Binder::~Binder()
 
 void Binder::setup()
 {
-    QFile file( PARAMSDIR + "/binder_ew.d");
+    QFile file( c.PARAMSDIR + "/binder_ew.d");
     if( file.open( QIODevice::ReadOnly ) )
     {
         QTextStream stream(&file);
@@ -87,24 +96,24 @@ void Binder::setLanguageEn()
     setWindowTitle("Config Binder Parameters");
     ui->genButton->setText("Generate");
     ui->quitButton->setText("Quit");
-    ui->pnLB->setText("Parameter Name");
-    ui->valueLB->setText("Name");
+    ui->lb1->setText("Parameter Name");
+    ui->lb2->setText("Name");
 }
 
 void Binder::setLanguageKo()
 {
-    setWindowTitle(codec->toUnicode("설정 값 변경"));
-    ui->genButton->setText(codec->toUnicode("확인"));
-    ui->quitButton->setText(codec->toUnicode("종료"));
-    ui->pnLB->setText(codec->toUnicode("설정"));
-    ui->valueLB->setText(codec->toUnicode("값"));
+    setWindowTitle(codec->toUnicode("Binder 설정 값 변경"));
+    ui->genButton->setText(codec->toUnicode("변경"));
+    ui->quitButton->setText(codec->toUnicode("취소"));
+    ui->lb1->setText(codec->toUnicode("설정"));
+    ui->lb2->setText(codec->toUnicode("값"));
 }
 
 void Binder::genButtonClicked()
 {
     QFile file;
     /* generate binder_ew.d file. */
-    file.setFileName( PARAMSDIR + "/binder_ew.d");
+    file.setFileName( c.PARAMSDIR + "/binder_ew.d");
 
     if( file.open( QIODevice::WriteOnly ) )
     {

@@ -1,19 +1,27 @@
 #include "selectstafile.h"
 #include "ui_selectstafile.h"
 
-SelectStaFile::SelectStaFile(bool _event, QWidget *parent) :
+// _event == true   :  using making new event mode
+// _event == false  :  normal mode
+SelectStaFile::SelectStaFile(CFG cfg, bool _korean, bool _event, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::SelectStaFile)
 {
     ui->setupUi(this);
     codec = QTextCodec::codecForName( "utf8" );
-    korean=false;
+    korean = _korean;
     event = _event;
+    c = cfg;
+
+    if(korean)
+        setLanguageKo();
+    else
+        setLanguageEn();
 
     ui->listWidget->clear();
     ui->listWidgetDesc->clear();
     QDir dir;
-    dir.setPath(PARAMSDIR + "/staInfo");
+    dir.setPath(c.PARAMSDIR + "/staInfo");
     QStringList files;
     QString fileName = "*.sta";
     files = dir.entryList(QStringList(fileName), QDir::Files | QDir::NoSymLinks);
@@ -23,7 +31,7 @@ SelectStaFile::SelectStaFile(bool _event, QWidget *parent) :
     QFile file;
     for(int i=0;i<files.count();i++)
     {
-        file.setFileName(PARAMSDIR + "/staInfo/"+files.at(i));
+        file.setFileName(c.PARAMSDIR + "/staInfo/"+files.at(i));
 
         if( file.open( QIODevice::ReadOnly ) )
         {
@@ -68,10 +76,6 @@ void SelectStaFile::setLanguageKo()
     ui->lb2->setText(codec->toUnicode("설명"));
 }
 
-void SelectStaFile::setup()
-{
-}
-
 void SelectStaFile::selectFiles(int row)
 {
     ui->stafileLE->setText(ui->listWidget->item(row)->text());
@@ -83,18 +87,16 @@ void SelectStaFile::selectButtonClicked()
     QString cmd;
     if(event)
     {
-        cmd = "cp " + PARAMSDIR + "/staInfo/" + staFileName + " " + EVENTDIR + "/TMP/sta.info";
+        cmd = "cp " + c.PARAMSDIR + "/staInfo/" + staFileName + " " + c.EVENTDIR + "/TMP/sta.info";
         system(cmd.toLatin1().data());
         emit sendSignaltoDataExtractor();
     }
     else
     {
-        cmd = "cp " + PARAMSDIR + "/staInfo/" + staFileName + " " + PARAMSDIR + "/sta.info";
+        cmd = "cp " + c.PARAMSDIR + "/staInfo/" + staFileName + " " + c.PARAMSDIR + "/sta.info";
         system(cmd.toLatin1().data());
     }
 
-    if(!event)
-    {
     QFile file;
     STAFILE stafile;
     QString minLatforBinder, maxLatforBinder, minLonforBinder, maxLonforBinder;
@@ -102,7 +104,11 @@ void SelectStaFile::selectButtonClicked()
     double minlat, maxlat, minlon, maxlon, avglat, avglon;
     int scnCount;
 
-    file.setFileName(PARAMSDIR + "/sta.info");
+    if(event)
+        file.setFileName(c.EVENTDIR + "/TMP/sta.info");
+    else
+        file.setFileName(c.PARAMSDIR + "/sta.info");
+
     if( file.open( QIODevice::ReadOnly ) )
     {
         QTextStream stream(&file);
@@ -167,13 +173,10 @@ void SelectStaFile::selectButtonClicked()
             stafile.latM << temp + " " + temp2 + "N";
             stafile.lonM << temp3 + " " + temp4 + "E";
             stafile.elevM << stafile.elevKm[i].section('.',1,1);
-
-            //qDebug() << stafile.staName[i] << " " << stafile.latD[i] << " " << stafile.lonD[i] << " " << stafile.elevKm[i];
         }
 
         avglat = (minlat + maxlat) / 2;
         avglon = (minlon + maxlon) / 2;
-        //qDebug() << minlat << maxlat << minlon << maxlon << avglat << " " << avglon;
         avgLatforNLLoc = avgLatforNLLoc.setNum(avglat, 'f', 6);
         avgLonforNLLoc = avgLonforNLLoc.setNum(avglon, 'f', 6);
         minlat = minlat - 1; maxlat = maxlat + 2; minlon = minlon - 1; maxlon = maxlon + 2;
@@ -184,19 +187,24 @@ void SelectStaFile::selectButtonClicked()
     }
 
     FileGenerator *gen = new FileGenerator;
-    gen->pick_ew_gen(stafile);
-    gen->pick_FP_gen(stafile);
-    gen->hinv_gen(stafile);
-    gen->tanklist_gen(stafile);
-    gen->binder_gen(minLatforBinder, maxLatforBinder, minLonforBinder, maxLonforBinder);
-    gen->ew2mseed_gen(stafile);
-    gen->nlloc_gen(stafile, avgLatforNLLoc, avgLonforNLLoc);
+    if(!event)
+    {
+        gen->pick_ew_gen(c, stafile);
+        gen->pick_FP_gen(c, stafile);
+        gen->hinv_gen(c, stafile);
+        gen->tanklist_gen(c, stafile);
+        gen->binder_gen(c, minLatforBinder, maxLatforBinder, minLonforBinder, maxLonforBinder);
+        gen->ew2mseed_gen(c, stafile);
+        gen->nlloc_gen(false, c, stafile, avgLatforNLLoc, avgLonforNLLoc);
+    }
+    else
+    {
+        gen->nlloc_gen(true, c, stafile, avgLatforNLLoc, avgLonforNLLoc);
+    }
 
     QMessageBox msgBox;
     if(!korean) msgBox.setText("Staions Infomation loaded.");
     else msgBox.setText(codec->toUnicode("관측소 정보 로딩 완료."));
     msgBox.exec();
-    }
-
     accept();
 }

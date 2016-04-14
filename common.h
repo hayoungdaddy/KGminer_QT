@@ -18,7 +18,7 @@ static QString DATADIR="/data";
 static QString DB="/data/db/kgminer.db";
 static QString TMPDIR="/data/tmp";
 static QString EVENTDIR="/data/event";
-static int LATENCYSOCKNUM = 9908;
+//static int LATENCYSOCKNUM = 9908;
 
 typedef struct
 {

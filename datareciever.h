@@ -19,14 +19,10 @@ public:
     explicit DataReciever(CFG cfg, QWidget *parent = 0);
     ~DataReciever();
 
-    bool korean;
-
     CFG c;
 
 private:
     Ui::DataReciever *ui;
-
-    QTextCodec *codec;
 
 public slots:
     void extract();
@@ -34,11 +30,6 @@ public slots:
     void simulButtonClicked();
     void reset();
     void viewWaveForm();
-
-private slots:
-
-signals:
-
 };
 
 #endif

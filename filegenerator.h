@@ -15,13 +15,16 @@ public:
     explicit FileGenerator(QWidget *parent = 0);
     ~FileGenerator();
 
-    void pick_ew_gen(STAFILE);
-    void pick_FP_gen(STAFILE);
-    void binder_gen(QString, QString, QString, QString);
-    void hinv_gen(STAFILE);
-    void tanklist_gen(STAFILE);
-    void ew2mseed_gen(STAFILE);
-    void nlloc_gen(STAFILE, QString, QString);
+    void pick_ew_gen(CFG, STAFILE);
+    void pick_FP_gen(CFG, STAFILE);
+    void binder_gen(CFG, QString, QString, QString, QString);
+    void hinv_gen(CFG, STAFILE);
+    void tanklist_gen(CFG, STAFILE);
+    void ew2mseed_gen(CFG, STAFILE);
+    void nlloc_gen(bool, CFG, STAFILE, QString, QString);
+    void gen_type(QString);
+    void gen_gridP(QString, STAFILE, QString, QString, double, double, int, QString);
+    void gen_nllocIn(QString, QString, QString, double, double, QString, QString, QString);
 };
 
 #endif // FILEGENERATOR_H

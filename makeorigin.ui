@@ -426,7 +426,7 @@
    </palette>
   </property>
   <property name="windowTitle">
-   <string>Make new origin</string>
+   <string>Make a new origin</string>
   </property>
   <widget class="QGroupBox" name="locator">
    <property name="geometry">

@@ -21,10 +21,14 @@ class DataExtractor : public QDialog
     Q_OBJECT
 
 public:
-    explicit DataExtractor(bool iskorean = 0, QWidget *parent = 0);
+    explicit DataExtractor(CFG cfg, bool _korean = 0, QWidget *parent = 0);
     ~DataExtractor();
 
     bool korean;
+    CFG c;
+
+    void setLanguageEn();
+    void setLanguageKo();
 
     STAFILE stafile;
 
@@ -57,7 +61,6 @@ private slots:
     void savePickBClicked();
 
     void editParamNLLocBClicked();
-    void nlloc_gen(STAFILE);
     void runNLLocBClicked();
 
     void saveBClicked();

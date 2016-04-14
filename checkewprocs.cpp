@@ -3,7 +3,7 @@
 CheckEWProcs::CheckEWProcs( CFG cfg )
 {
     QTimer* timer = new QTimer(this);
-    timer->start( 1000 );
+    timer->start( 3000 );
 
     c = cfg;
 
@@ -54,7 +54,7 @@ EWMODULEINFO CheckEWProcs::readEwModuleInfo()
 
             //qDebug() << _line;
 
-            if(c.isUpper() || _line.isNull() || _line.startsWith("-----") || _line.isEmpty())
+            if(c.isUpper() || _line.isNull() || _line.startsWith("-----") || _line.isEmpty() || _line.startsWith("type"))
                 continue;
             else
             {

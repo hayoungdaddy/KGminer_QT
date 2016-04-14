@@ -18,12 +18,9 @@
 #include "latencymon.h"
 #include "eventmon.h"
 #include "dataextractor.h"
-#include "importtnk.h"
-#include "maketnk.h"
 #include "viewlog.h"
 #include "selectstafile.h"
 #include "viewstation.h"
-#include "changelocator.h"
 
 #include "datareciever.h"
 

@@ -8,19 +8,20 @@
 
 #include "common.h"
 
-namespace Ui {
-    class FilterPicker;
-}
-
 class FilterPicker : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit FilterPicker(QWidget *parent = 0);
+    explicit FilterPicker(CFG cfg, bool _korean = 0, QWidget *parent = 0);
     ~FilterPicker();
 
+    bool korean;
+    CFG c;
+
 private:
+    QTextCodec *codec;
+
     QStringList staName;
     QStringList chanName;
     QStringList netName;

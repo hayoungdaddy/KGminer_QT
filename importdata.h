@@ -19,11 +19,10 @@ class ImportData : public QDialog
     Q_OBJECT
 
 public:
-    explicit ImportData(CFG cfg, QWidget *parent = 0);
+    explicit ImportData(CFG cfg, bool _korean = 0, QWidget *parent = 0);
     ~ImportData();
 
     bool korean;
-    void setup();
 
     CFG c;
 

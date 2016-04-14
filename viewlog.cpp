@@ -1,12 +1,14 @@
 #include "viewlog.h"
 #include "ui_viewlog.h"
 
-ViewLog::ViewLog(QWidget *parent) :
+ViewLog::ViewLog(CFG cfg, QWidget *parent) :
     QDialog(parent),
     ViewLog_ui(new Ui::ViewLog)
 {
     ViewLog_ui->setupUi(this);
     //codec = QTextCodec::codecForName( "utf8" );
+
+    c = cfg;
 
     connect(ViewLog_ui->quitButton, SIGNAL(clicked()), this, SLOT(accept()));
     connect(ViewLog_ui->viewButton, SIGNAL(clicked()), this, SLOT(viewLogButtonClicked()));

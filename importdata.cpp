@@ -1,15 +1,32 @@
 #include "importdata.h"
 #include "ui_importdata.h"
 
-ImportData::ImportData(CFG cfg, QWidget *parent) :
+ImportData::ImportData(CFG cfg, bool _korean, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ImportData)
 {
     ui->setupUi(this);
     codec = QTextCodec::codecForName( "utf8" );
-    korean=false;
+    korean = _korean;
 
     c = cfg;
+
+    ui->status->setText("idle...");
+    ui->tableWidget->clear();
+    ui->tableWidget->setRowCount(0);
+    ui->tableWidget->setColumnWidth(0, 360);
+    ui->tableWidget->setColumnWidth(1, 200);
+    ui->tableWidget->setColumnWidth(2, 200);
+    ui->tableWidget->setColumnWidth(3, 190);
+    ui->tableWidget->setColumnWidth(4, 180);
+
+    if(korean)
+        setLanguageKo();
+    else
+        setLanguageEn();
+
+    ui->pb->setRange(0, 100);
+    ui->pb->setValue(0);
 
     connect(ui->fileBrowButton, SIGNAL(clicked()), this, SLOT(openFileBrowser()));
     connect(ui->quitButton, SIGNAL(clicked()), this, SLOT(accept()));
@@ -23,26 +40,6 @@ ImportData::~ImportData()
     delete ui;
 }
 
-void ImportData::setup()
-{
-    ui->status->setText("idle...");
-    ui->tableWidget->clear();
-    ui->tableWidget->setRowCount(0);
-    ui->tableWidget->setColumnWidth(0, 360);
-    ui->tableWidget->setColumnWidth(1, 200);
-    ui->tableWidget->setColumnWidth(2, 200);
-    ui->tableWidget->setColumnWidth(3, 190);
-    ui->tableWidget->setColumnWidth(4, 180);
-    ui->tableWidget->setHorizontalHeaderItem(0, new QTableWidgetItem("File Name"));
-    ui->tableWidget->setHorizontalHeaderItem(1, new QTableWidgetItem("Start Time"));
-    ui->tableWidget->setHorizontalHeaderItem(2, new QTableWidgetItem("End Time"));
-    ui->tableWidget->setHorizontalHeaderItem(3, new QTableWidgetItem("Data Ability"));
-    ui->tableWidget->setHorizontalHeaderItem(4, new QTableWidgetItem("View Waveform"));
-
-    ui->pb->setRange(0, 100);
-    ui->pb->setValue(0);
-}
-
 void ImportData::setLanguageEn()
 {
     setWindowTitle("Import miniseed data");
@@ -50,15 +47,25 @@ void ImportData::setLanguageEn()
     ui->genButton->setText("Import");
     ui->fileBrowButton->setText("File browser");
     ui->viewwaveformButton->setText("View waveform");
+    ui->tableWidget->setHorizontalHeaderItem(0, new QTableWidgetItem("File Name"));
+    ui->tableWidget->setHorizontalHeaderItem(1, new QTableWidgetItem("Start Time"));
+    ui->tableWidget->setHorizontalHeaderItem(2, new QTableWidgetItem("End Time"));
+    ui->tableWidget->setHorizontalHeaderItem(3, new QTableWidgetItem("Data Ability"));
+    ui->tableWidget->setHorizontalHeaderItem(4, new QTableWidgetItem("View Waveform"));
 }
 
 void ImportData::setLanguageKo()
-{
+{  
     setWindowTitle(codec->toUnicode("miniseed 데이터 입력"));
     ui->quitButton->setText(codec->toUnicode("종료"));
     ui->genButton->setText(codec->toUnicode("자료 입력"));
     ui->fileBrowButton->setText(codec->toUnicode("파일 브라우져"));
     ui->viewwaveformButton->setText(codec->toUnicode("파형 보기"));
+    ui->tableWidget->setHorizontalHeaderItem(0, new QTableWidgetItem(codec->toUnicode("파일명")));
+    ui->tableWidget->setHorizontalHeaderItem(1, new QTableWidgetItem(codec->toUnicode("시작시간")));
+    ui->tableWidget->setHorizontalHeaderItem(2, new QTableWidgetItem(codec->toUnicode("끝시간")));
+    ui->tableWidget->setHorizontalHeaderItem(3, new QTableWidgetItem(codec->toUnicode("데이터 가용")));
+    ui->tableWidget->setHorizontalHeaderItem(4, new QTableWidgetItem(codec->toUnicode("파형보기")));
 }
 
 void ImportData::openFileBrowser()
@@ -83,8 +90,6 @@ void ImportData::openFileBrowser()
 
     if(count == 0)
         return;
-
-    //qDebug() << fileNames;
 
     QRegExp rx("\\b(ACE|LOG|VFP|VMU|VMV|VMW|LCQ|LCE|LHE|LHN|LHZ|LGE|LGN|LGZ|OCF|HAZ|HAN|HAE|BAZ|BAN|BAE)\\b");
 
@@ -137,7 +142,7 @@ void ImportData::openFileBrowser()
 void ImportData::viewWaveformClicked()
 {
     QFile file;
-    file.setFileName(TMPDIR + "/runGeoFull.file");
+    file.setFileName(c.TMPDIR + "/runGeoFull.file");
     if(file.open( QIODevice::WriteOnly ))
     {
         QTextStream stream(&file);
@@ -150,7 +155,7 @@ void ImportData::viewWaveformClicked()
         file.close();
     }
 
-    QString program = SCRIPTDIR + "/runGeoFull.sh";
+    QString program = c.SCRIPTDIR + "/runGeoFull.sh";
     QStringList arguments;
     arguments << file.fileName();
     QProcess *process = new QProcess;
@@ -162,7 +167,7 @@ void ImportData::viewWaveClicked(int row, int col)
 {
     if(col == 4)
     {
-        QString program = SCRIPTDIR + "/runGeoSingle.sh";
+        QString program = c.SCRIPTDIR + "/runGeoSingle.sh";
         QStringList arguments;
         arguments << ui->tableWidget->item(row, 0)->text();
         QProcess *process = new QProcess;

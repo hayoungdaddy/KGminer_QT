@@ -1,50 +1,75 @@
 #include "nlloc.h"
 #include "ui_nlloc.h"
 
-NLLoc::NLLoc(QString evid, QString orid, QString num, QWidget *parent) :
+NLLoc::NLLoc(CFG cfg, bool _korean, QString evid, QString orid, QString num, QWidget *parent) :
     QDialog(parent),
-    NLLoc_ui(new Ui::NLLoc)
+    ui(new Ui::NLLoc)
 {
-    NLLoc_ui->setupUi(this);
-    //codec = QTextCodec::codecForName( "utf8" );
+    ui->setupUi(this);
+
+    codec = QTextCodec::codecForName( "utf8" );
+    korean = _korean;
+
+    if(korean)
+        setLanguageKo();
+    else
+        setLanguageEn();
+
+    c = cfg;
+
     EVID = evid;
     ORID = orid;
     NUMBER = num;
 
-    connect(NLLoc_ui->svmr, SIGNAL(clicked()), this, SLOT(svmbClicked()));
-    connect(NLLoc_ui->mvmr, SIGNAL(clicked()), this, SLOT(mvmbClicked()));
-    connect(NLLoc_ui->quitButton, SIGNAL(clicked()), this, SLOT(accept()));
-    connect(NLLoc_ui->genButton, SIGNAL(clicked()), this, SLOT(genButtonClicked()));
+    setup();
+
+    connect(ui->svmr, SIGNAL(clicked()), this, SLOT(svmbClicked()));
+    connect(ui->mvmr, SIGNAL(clicked()), this, SLOT(mvmbClicked()));
+    connect(ui->quitButton, SIGNAL(clicked()), this, SLOT(accept()));
+    connect(ui->genButton, SIGNAL(clicked()), this, SLOT(genButtonClicked()));
 }
 
 NLLoc::~NLLoc()
 {
-    delete NLLoc_ui;
+    delete ui;
+}
+
+void NLLoc::setLanguageEn()
+{
+    setWindowTitle("Config NLLoc Parameters");
+    ui->genButton->setText("Generate");
+    ui->quitButton->setText("Quit");
+}
+
+void NLLoc::setLanguageKo()
+{
+    setWindowTitle(codec->toUnicode("NLLoc 설정 값 변경"));
+    ui->genButton->setText(codec->toUnicode("변경"));
+    ui->quitButton->setText(codec->toUnicode("취소"));
 }
 
 void NLLoc::svmbClicked()
 {
-    NLLoc_ui->svmf->setEnabled(true);
-    NLLoc_ui->mvmf->setEnabled(false);
+    ui->svmf->setEnabled(true);
+    ui->mvmf->setEnabled(false);
 }
 
 void NLLoc::mvmbClicked()
 {
-    NLLoc_ui->mvmf->setEnabled(true);
-    NLLoc_ui->svmf->setEnabled(false);
+    ui->mvmf->setEnabled(true);
+    ui->svmf->setEnabled(false);
 }
 
 void NLLoc::setup()
 {
-    if(EVID != "0")
-    {
-        MAINDIR = EVENTDIR + "/" + EVID + "/" + ORID + "/NLLOC";
-    }
+    // EVID == "0" is normal change mode
+    // EVID == num is make new origin mode
+    // EVID == "TMP" is make new event mode
+
+    if(EVID == "0")
+        MAINDIR = c.PARAMSDIR + "/NLLOC/" + NUMBER;
     else
-    {
-        MAINDIR = PARAMSDIR + "/NLLOC/" + NUMBER;
-    }
-    qDebug() << MAINDIR;
+        MAINDIR = c.EVENTDIR + "/" + EVID + "/" + ORID + "/NLLOC" + NUMBER; // NUMBER is 1
 
     // find NLLoc type
     QFile file;
@@ -67,19 +92,19 @@ void NLLoc::setup()
     if(TYPE == "SVM")
     {
         file.setFileName(MAINDIR + "/grid_p.in");
-        NLLoc_ui->svmr->setChecked(true);
-        NLLoc_ui->svmf->setEnabled(true);
-        NLLoc_ui->mvmf->setEnabled(false);
-        NLLoc_ui->fpv->setText("3.5");
-        NLLoc_ui->lpv->setText("5.5");
+        ui->svmr->setChecked(true);
+        ui->svmf->setEnabled(true);
+        ui->mvmf->setEnabled(false);
+        ui->fpv->setText("3.5");
+        ui->lpv->setText("5.5");
     }
     else if(TYPE == "MVM")
     {
         file.setFileName(MAINDIR + "/" + MINV + "/grid_p.in" );
-        NLLoc_ui->mvmr->setChecked(true);
-        NLLoc_ui->svmf->setEnabled(false);
-        NLLoc_ui->mvmf->setEnabled(true);
-        NLLoc_ui->textEdit->setText("LAYER 0.0 4.0 0.0");
+        ui->mvmr->setChecked(true);
+        ui->svmf->setEnabled(false);
+        ui->mvmf->setEnabled(true);
+        ui->textEdit->setText("LAYER 0.0 4.0 0.0");
     }
 
     if( file.open( QIODevice::ReadOnly ) )
@@ -98,35 +123,35 @@ void NLLoc::setup()
             {
                 if(_line.startsWith("TRANS"))
                 {
-                    NLLoc_ui->latOrigLE->setText(_line.section(' ', 3, 3));
-                    NLLoc_ui->lonOrigLE->setText(_line.section(' ', 4, 4));
-                    NLLoc_ui->fspLE->setText(_line.section(' ', 5, 5));
-                    NLLoc_ui->sspLE->setText(_line.section(' ', 6, 6));
+                    ui->latOrigLE->setText(_line.section(' ', 3, 3));
+                    ui->lonOrigLE->setText(_line.section(' ', 4, 4));
+                    ui->fspLE->setText(_line.section(' ', 5, 5));
+                    ui->sspLE->setText(_line.section(' ', 6, 6));
                     continue;
                 }
 
                 if(_line.startsWith("VGGRID"))
                 {
-                    NLLoc_ui->vngxLE->setText(_line.section(' ', 1, 1));
-                    NLLoc_ui->vngyLE->setText(_line.section(' ', 2, 2));
-                    NLLoc_ui->vngzLE->setText(_line.section(' ', 3, 3));
-                    NLLoc_ui->vogxLE->setText(_line.section(' ', 4, 4));
-                    NLLoc_ui->vogyLE->setText(_line.section(' ', 5, 5));
-                    NLLoc_ui->vogzLE->setText(_line.section(' ', 6, 6));
-                    NLLoc_ui->vgsxLE->setText(_line.section(' ', 7, 7));
-                    NLLoc_ui->vgsyLE->setText(_line.section(' ', 8, 8));
-                    NLLoc_ui->vgszLE->setText(_line.section(' ', 9, 9));
+                    ui->vngxLE->setText(_line.section(' ', 1, 1));
+                    ui->vngyLE->setText(_line.section(' ', 2, 2));
+                    ui->vngzLE->setText(_line.section(' ', 3, 3));
+                    ui->vogxLE->setText(_line.section(' ', 4, 4));
+                    ui->vogyLE->setText(_line.section(' ', 5, 5));
+                    ui->vogzLE->setText(_line.section(' ', 6, 6));
+                    ui->vgsxLE->setText(_line.section(' ', 7, 7));
+                    ui->vgsyLE->setText(_line.section(' ', 8, 8));
+                    ui->vgszLE->setText(_line.section(' ', 9, 9));
                 }
 
                 if(_line.startsWith("LAYER") && TYPE == "SVM")
                 {
-                    NLLoc_ui->textEdit->append(_line);
+                    ui->textEdit->append(_line);
                     continue;
                 }
 
                 if(_line.startsWith("GTSRCE"))
                 {
-                    NLLoc_ui->listWidget->addItem(_line);
+                    ui->listWidget->addItem(_line);
                     continue;
                 }
             }
@@ -155,15 +180,15 @@ void NLLoc::setup()
             {
                 if(_line.startsWith("LOCGRID"))
                 {
-                    NLLoc_ui->ngxLE->setText(_line.section(' ', 1, 1));
-                    NLLoc_ui->ngyLE->setText(_line.section(' ', 2, 2));
-                    NLLoc_ui->ngzLE->setText(_line.section(' ', 3, 3));
-                    NLLoc_ui->ogxLE->setText(_line.section(' ', 4, 4));
-                    NLLoc_ui->ogyLE->setText(_line.section(' ', 5, 5));
-                    NLLoc_ui->ogzLE->setText(_line.section(' ', 6, 6));
-                    NLLoc_ui->gsxLE->setText(_line.section(' ', 7, 7));
-                    NLLoc_ui->gsyLE->setText(_line.section(' ', 8, 8));
-                    NLLoc_ui->gszLE->setText(_line.section(' ', 9, 9));
+                    ui->ngxLE->setText(_line.section(' ', 1, 1));
+                    ui->ngyLE->setText(_line.section(' ', 2, 2));
+                    ui->ngzLE->setText(_line.section(' ', 3, 3));
+                    ui->ogxLE->setText(_line.section(' ', 4, 4));
+                    ui->ogyLE->setText(_line.section(' ', 5, 5));
+                    ui->ogzLE->setText(_line.section(' ', 6, 6));
+                    ui->gsxLE->setText(_line.section(' ', 7, 7));
+                    ui->gsyLE->setText(_line.section(' ', 8, 8));
+                    ui->gszLE->setText(_line.section(' ', 9, 9));
                 }
             }
         }
@@ -174,25 +199,19 @@ void NLLoc::genButtonClicked()
 {
     QFile file;
 
-    if(NLLoc_ui->svmr->isChecked())
+    if(ui->svmr->isChecked())
         TYPE = "SVM";
-    else if(NLLoc_ui->mvmr->isChecked())
+    else if(ui->mvmr->isChecked())
     {
         TYPE = "MVM";
-        MINV = NLLoc_ui->fpv->text();
-        MAXV = NLLoc_ui->lpv->text();
+        MINV = ui->fpv->text();
+        MAXV = ui->lpv->text();
     }
 
-    if(EVID != "0")
-    {
-        MAINDIR = EVENTDIR + "/" + EVID + "/" + ORID + "/NLLOC";
-    }
+    if(EVID == "0")
+        MAINDIR = c.PARAMSDIR + "/NLLOC/" + NUMBER;
     else
-    {
-        MAINDIR = PARAMSDIR + "/NLLOC/" + NUMBER;
-    }
-
-    file.setFileName(MAINDIR + "/grid_p.in");
+        MAINDIR = c.EVENTDIR + "/" + EVID + "/" + ORID + "/NLLOC" + NUMBER; // NUMBER is 1
 
     if(TYPE == "SVM")
     {
@@ -205,65 +224,66 @@ void NLLoc::genButtonClicked()
 
     if(TYPE == "SVM")
     {
-        QString cmd;
-        cmd = "mkdir " + MAINDIR + "/model";
-        system(cmd.toLatin1().data());
-        cmd = "mkdir " + MAINDIR + "/time";
-        system(cmd.toLatin1().data());
+        QDir d;
+        d.setPath(MAINDIR + "/model");
+        if(!d.exists())
+            d.mkpath(".");
+        d.setPath(MAINDIR + "/time");
+        if(!d.exists())
+            d.mkpath(".");
 
         file.setFileName(MAINDIR + "/grid_p.in");
         if( file.open( QIODevice::WriteOnly ) )
         {
             QTextStream stream( &file ) ;
             stream << "CONTROL 1 54321" << "\n";
-            stream << "TRANS  LAMBERT  WGS-84  " << NLLoc_ui->latOrigLE->text() << " " <<
-                      NLLoc_ui->lonOrigLE->text() << "  " << NLLoc_ui->fspLE->text() << " " <<
-                      NLLoc_ui->sspLE->text() << "  0.0" << "\n";
+            stream << "TRANS  LAMBERT  WGS-84  " << ui->latOrigLE->text() << " " <<
+                      ui->lonOrigLE->text() << "  " << ui->fspLE->text() << " " <<
+                      ui->sspLE->text() << "  0.0" << "\n";
 
-            if(EVID != "0")
-            {
-                stream << "VGOUT " << MAINDIR << "/model/layer" << "\n";
-            }
+            if(EVID == "0")
+                stream << "VGOUT " + c.EVENTDIR + "/EVID/ORID/NLLOC" + NUMBER + "/model/layer" << "\n";
             else
-            {
-                stream << "VGOUT " + EVENTDIR + "/EVID/ORID/NLLOC/model/layer" << "\n";
-            }
+                stream << "VGOUT " + MAINDIR + "/model/layer" << "\n";
+
             stream << "VGTYPE P" << "\n";
-            stream << "VGGRID  " << NLLoc_ui->vngxLE->text() << " " << NLLoc_ui->vngyLE->text() << " " <<
-                      NLLoc_ui->vngzLE->text() << " " << NLLoc_ui->vogxLE->text() << " " << NLLoc_ui->vogyLE->text() <<
-                      " " << NLLoc_ui->vogzLE->text() << " " << NLLoc_ui->vgsxLE->text() << " " <<
-                      NLLoc_ui->vgsyLE->text() << " " << NLLoc_ui->vgszLE->text() << "  SLOW_LEN" << "\n";
-            stream << NLLoc_ui->textEdit->toPlainText() << "\n";
+            stream << "VGGRID  " << ui->vngxLE->text() << " " << ui->vngyLE->text() << " " <<
+                      ui->vngzLE->text() << " " << ui->vogxLE->text() << " " << ui->vogyLE->text() <<
+                      " " << ui->vogzLE->text() << " " << ui->vgsxLE->text() << " " <<
+                      ui->vgsyLE->text() << " " << ui->vgszLE->text() << "  SLOW_LEN" << "\n";
+            stream << ui->textEdit->toPlainText() << "\n";
 
-            if(EVID != "0")
+            if(EVID == "0")
             {
-                stream << "GTFILES  " << MAINDIR << "/model/layer " << MAINDIR << "/time/layer P" << "\n";
+                stream << "GTFILES  " + c.EVENTDIR + "/EVID/ORID/NLLOC" + NUMBER + "/model/layer " + c.EVENTDIR +
+                          "/EVID/ORID/NLLOC" + NUMBER + "/time/layer P" << "\n";
             }
             else
             {
-                stream << "GTFILES  " + EVENTDIR + "/EVID/ORID/NLLOC/model/layer " + EVENTDIR + "/EVID/ORID/NLLOC/time/layer P" << "\n";
+                stream << "GTFILES  " + MAINDIR + "/model/layer " + MAINDIR + "/time/layer P" << "\n";
             }
 
             stream << "GTMODE GRID3D ANGLES_NO" << "\n";
-            int count = NLLoc_ui->listWidget->count();
+            int count = ui->listWidget->count();
             for(int i=0;i<count;i++)
             {
-                stream << NLLoc_ui->listWidget->item(i)->text() << "\n";
+                stream << ui->listWidget->item(i)->text() << "\n";
             }
 
             stream << "GT_PLFD  1.0e-3  0" << "\n";
 
             file.close();
         }
+
         file.setFileName(MAINDIR + "/nlloc.in");
         if( file.open( QIODevice::WriteOnly ) )
         {
             QTextStream stream( &file ) ;
 
             stream << "CONTROL 1 54321" << "\n";
-            stream << "TRANS  LAMBERT  WGS-84  " << NLLoc_ui->latOrigLE->text() << " " <<
-                      NLLoc_ui->lonOrigLE->text() << "  " << NLLoc_ui->fspLE->text() << " " <<
-                      NLLoc_ui->sspLE->text() << "  0.0" << "\n";
+            stream << "TRANS  LAMBERT  WGS-84  " << ui->latOrigLE->text() << " " <<
+                      ui->lonOrigLE->text() << "  " << ui->fspLE->text() << " " <<
+                      ui->sspLE->text() << "  0.0" << "\n";
             stream << "LOCSIG  KGminer" << "\n";
             stream << "LOCCOM KGminer" << "\n";
             stream << "LOCMETH  EDT_OT_WT 1.0e6 2 25  -1 -1.80 6 -1.0 0" << "\n";
@@ -274,24 +294,24 @@ void NLLoc::genButtonClicked()
             stream << "LOCPHASEID  S   S s G SN Sn S* Sg SG Sb SB" << "\n";
             stream << "LOCQUAL2ERR 0.1 0.2 0.5 1.0 99999.9" << "\n";
             stream << "LOCSEARCH  OCT 10 10 4 0.01 10000 5000 0 1" << "\n";
-            stream << "LOCGRID  " << NLLoc_ui->ngxLE->text() << " " << NLLoc_ui->ngyLE->text() << " " <<
-                      NLLoc_ui->ngzLE->text() << " " << NLLoc_ui->ogxLE->text() << " " << NLLoc_ui->ogyLE->text() <<
-                      " " << NLLoc_ui->ogzLE->text() << " " << NLLoc_ui->gsxLE->text() << " " <<
-                      NLLoc_ui->gsyLE->text() << " " << NLLoc_ui->gszLE->text() << "  PROB_DENSITY SAVE" << "\n";
+            stream << "LOCGRID  " << ui->ngxLE->text() << " " << ui->ngyLE->text() << " " <<
+                      ui->ngzLE->text() << " " << ui->ogxLE->text() << " " << ui->ogyLE->text() <<
+                      " " << ui->ogzLE->text() << " " << ui->gsxLE->text() << " " <<
+                      ui->gsyLE->text() << " " << ui->gszLE->text() << "  PROB_DENSITY SAVE" << "\n";
             stream << "LOCPHSTAT 9999.0 -1 9999.0 1.0 1.0 9999.9 -9999.9 9999.9" << "\n";
             stream << "LOCANGLES ANGLES_NO 5" << "\n";
             stream << "LOCMAG  ML_HB 1.0 1.110 0.00189" << "\n";
             stream << "LOCELEVCORR 1 5.8 3.46" << "\n";
             stream << "LOCSTAWT 0 -1.0" << "\n";
-            if(EVID != "0")
+            if(EVID == "0")
             {
-                stream << "LOCFILES " << EVENTDIR << "/" << EVID << "/" << ORID << "/picklist HYPOINVERSE_Y2000_ARC " << MAINDIR << "/time/layer "
-                      << EVENTDIR << "/" << EVID << "/" << ORID << "/LOC/NLLOC" << "\n";
+                stream << "LOCFILES " << c.EVENTDIR << "/EVID/ORID/picklist HYPOINVERSE_Y2000_ARC " << c.EVENTDIR << "/EVID/ORID/NLLOC" + NUMBER + "/time/layer "
+                      << c.EVENTDIR << "/EVID/ORID/LOC/NLLOC" + NUMBER << "\n";
             }
             else
             {
-                stream << "LOCFILES " << EVENTDIR << "/EVID/ORID/picklist HYPOINVERSE_Y2000_ARC " << EVENTDIR << "/EVID/ORID/NLLOC/time/layer "
-                      << EVENTDIR << "/EVID/ORID/LOC/NLLOC" << "\n";
+                stream << "LOCFILES " << c.EVENTDIR << "/" << EVID << "/" << ORID << "/picklist HYPOINVERSE_Y2000_ARC " << MAINDIR << "/time/layer "
+                      << c.EVENTDIR << "/" << EVID << "/" << ORID << "/LOC/NLLOC1" << "\n";
             }
             stream << "LOCHYPOUT SAVE_HYPOINVERSE_Y2000_ARC" << "\n";
 
@@ -305,44 +325,51 @@ void NLLoc::genButtonClicked()
         {
             QString VEL;
             VEL = VEL.setNum(f, 'f', 1);
-            QString cmd = "mkdir " + MAINDIR + "/" + VEL; system(cmd.toLatin1().data());
-            cmd = "mkdir " + MAINDIR + "/" + VEL + "/model"; system(cmd.toLatin1().data());
-            cmd = "mkdir " + MAINDIR + "/" + VEL + "/time"; system(cmd.toLatin1().data());
+
+            QDir d;
+            d.setPath(MAINDIR + "/" + VEL + "/model");
+            if(!d.exists())
+                d.mkpath(".");
+            d.setPath(MAINDIR + "/" + VEL + "/time");
+            if(!d.exists())
+                d.mkpath(".");
+
             file.setFileName(MAINDIR + "/" + VEL + "/grid_p.in");
             if( file.open( QIODevice::WriteOnly ) )
             {
                 QTextStream stream( &file ) ;
                 stream << "CONTROL 1 54321" << "\n";
-                stream << "TRANS  LAMBERT  WGS-84  " << NLLoc_ui->latOrigLE->text() << " " <<
-                          NLLoc_ui->lonOrigLE->text() << "  " << NLLoc_ui->fspLE->text() << " " <<
-                          NLLoc_ui->sspLE->text() << "  0.0" << "\n";
-                if(EVID != "0")
-                {
-                    stream << "VGOUT " << MAINDIR << "/" << VEL << "/model/layer" << "\n";
-                }
+                stream << "TRANS  LAMBERT  WGS-84  " << ui->latOrigLE->text() << " " <<
+                          ui->lonOrigLE->text() << "  " << ui->fspLE->text() << " " <<
+                          ui->sspLE->text() << "  0.0" << "\n";
+
+                if(EVID == "0")
+                    stream << "VGOUT " + c.EVENTDIR + "/EVID/ORID/NLLOC" + NUMBER + "/" + VEL + "/model/layer" << "\n";
                 else
-                {
-                    stream << "VGOUT " << EVENTDIR + "/EVID/ORID/NLLOC/" << VEL << "/model/layer" << "\n";
-                }
+                    stream << "VGOUT " + MAINDIR + "/" + VEL + "/model/layer" << "\n";
+
                 stream << "VGTYPE P" << "\n";
-                stream << "VGGRID  " << NLLoc_ui->vngxLE->text() << " " << NLLoc_ui->vngyLE->text() << " " <<
-                          NLLoc_ui->vngzLE->text() << " " << NLLoc_ui->vogxLE->text() << " " << NLLoc_ui->vogyLE->text() <<
-                          " " << NLLoc_ui->vogzLE->text() << " " << NLLoc_ui->vgsxLE->text() << " " <<
-                          NLLoc_ui->vgsyLE->text() << " " << NLLoc_ui->vgszLE->text() << "  SLOW_LEN" << "\n";
+                stream << "VGGRID  " << ui->vngxLE->text() << " " << ui->vngyLE->text() << " " <<
+                          ui->vngzLE->text() << " " << ui->vogxLE->text() << " " << ui->vogyLE->text() <<
+                          " " << ui->vogzLE->text() << " " << ui->vgsxLE->text() << " " <<
+                          ui->vgsyLE->text() << " " << ui->vgszLE->text() << "  SLOW_LEN" << "\n";
                 stream << "LAYER 0.0 " << VEL << " 0.0" << "\n";
-                if(EVID != "0")
+
+                if(EVID == "0")
                 {
-                    stream << "GTFILES  " << MAINDIR << "/" << VEL << "/model/layer " << MAINDIR << "/" << VEL << "/time/layer P" << "\n";
+                    stream << "GTFILES  " + c.EVENTDIR + "/EVID/ORID/NLLOC" + NUMBER + "/" + VEL + "/model/layer " + c.EVENTDIR +
+                              "/EVID/ORID/NLLOC" + NUMBER + "/" + VEL + "/time/layer P" << "\n";
                 }
                 else
                 {
-                    stream << "GTFILES  " << EVENTDIR << + "/EVID/ORID/NLLOC/" << VEL << "/model/layer " << EVENTDIR << "/EVID/ORID/NLLOC/" << VEL << "/time/layer P" << "\n";
+                    stream << "GTFILES  " + MAINDIR + "/" + VEL + "/model/layer " + MAINDIR + "/" + VEL + "/time/layer P" << "\n";
                 }
+
                 stream << "GTMODE GRID3D ANGLES_NO" << "\n";
-                int count = NLLoc_ui->listWidget->count();
+                int count = ui->listWidget->count();
                 for(int i=0;i<count;i++)
                 {
-                    stream << NLLoc_ui->listWidget->item(i)->text() << "\n";
+                    stream << ui->listWidget->item(i)->text() << "\n";
                 }
 
                 stream << "GT_PLFD  1.0e-3  0" << "\n";
@@ -355,9 +382,9 @@ void NLLoc::genButtonClicked()
                 QTextStream stream( &file ) ;
 
                 stream << "CONTROL 1 54321" << "\n";
-                stream << "TRANS  LAMBERT  WGS-84  " << NLLoc_ui->latOrigLE->text() << " " <<
-                          NLLoc_ui->lonOrigLE->text() << "  " << NLLoc_ui->fspLE->text() << " " <<
-                          NLLoc_ui->sspLE->text() << "  0.0" << "\n";
+                stream << "TRANS  LAMBERT  WGS-84  " << ui->latOrigLE->text() << " " <<
+                          ui->lonOrigLE->text() << "  " << ui->fspLE->text() << " " <<
+                          ui->sspLE->text() << "  0.0" << "\n";
                 stream << "LOCSIG  KGminer" << "\n";
                 stream << "LOCCOM KGminer" << "\n";
                 stream << "LOCMETH  EDT_OT_WT 1.0e6 2 25  -1 -1.80 6 -1.0 0" << "\n";
@@ -368,24 +395,25 @@ void NLLoc::genButtonClicked()
                 stream << "LOCPHASEID  S   S s G SN Sn S* Sg SG Sb SB" << "\n";
                 stream << "LOCQUAL2ERR 0.1 0.2 0.5 1.0 99999.9" << "\n";
                 stream << "LOCSEARCH  OCT 10 10 4 0.01 10000 5000 0 1" << "\n";
-                stream << "LOCGRID  " << NLLoc_ui->ngxLE->text() << " " << NLLoc_ui->ngyLE->text() << " " <<
-                          NLLoc_ui->ngzLE->text() << " " << NLLoc_ui->ogxLE->text() << " " << NLLoc_ui->ogyLE->text() <<
-                          " " << NLLoc_ui->ogzLE->text() << " " << NLLoc_ui->gsxLE->text() << " " <<
-                          NLLoc_ui->gsyLE->text() << " " << NLLoc_ui->gszLE->text() << "  PROB_DENSITY SAVE" << "\n";
+                stream << "LOCGRID  " << ui->ngxLE->text() << " " << ui->ngyLE->text() << " " <<
+                          ui->ngzLE->text() << " " << ui->ogxLE->text() << " " << ui->ogyLE->text() <<
+                          " " << ui->ogzLE->text() << " " << ui->gsxLE->text() << " " <<
+                          ui->gsyLE->text() << " " << ui->gszLE->text() << "  PROB_DENSITY SAVE" << "\n";
                 stream << "LOCPHSTAT 9999.0 -1 9999.0 1.0 1.0 9999.9 -9999.9 9999.9" << "\n";
                 stream << "LOCANGLES ANGLES_NO 5" << "\n";
                 stream << "LOCMAG  ML_HB 1.0 1.110 0.00189" << "\n";
                 stream << "LOCELEVCORR 1 5.8 3.46" << "\n";
                 stream << "LOCSTAWT 0 -1.0" << "\n";
-                if(EVID != "0")
+
+                if(EVID == "0")
                 {
-                    stream << "LOCFILES " << EVENTDIR << "/" << EVID << "/" << ORID << "/picklist HYPOINVERSE_Y2000_ARC " << MAINDIR << "/" << VEL << "/time/layer "
-                       << EVENTDIR << "/" << EVID << "/" << ORID << "/LOC/NLLOC_" << VEL << "\n";
+                    stream << "LOCFILES " + c.EVENTDIR + "/EVID/ORID/picklist HYPOINVERSE_Y2000_ARC " + c.EVENTDIR + "/EVID/ORID/NLLOC" + NUMBER +
+                              "/" + VEL + "/time/layer " + c.EVENTDIR + "/EVID/ORID/LOC/NLLOC" + NUMBER + "_" + VEL << "\n";
                 }
                 else
                 {
-                    stream << "LOCFILES " << EVENTDIR << "/EVID/ORID/picklist HYPOINVERSE_Y2000_ARC " << EVENTDIR << "/EVID/ORID/NLLOC/" << VEL << "/time/layer "
-                       << EVENTDIR << "/EVID/ORID/LOC/NLLOC_" << VEL << "\n";
+                    stream << "LOCFILES " + c.EVENTDIR + "/" + EVID + "/" + ORID + "/picklist HYPOINVERSE_Y2000_ARC " + MAINDIR + "/" + VEL +
+                           "/time/layer " + c.EVENTDIR + "/" + EVID + "/" + ORID + "/LOC/NLLOC1_" + VEL << "\n";
                 }
                 stream << "LOCHYPOUT SAVE_HYPOINVERSE_Y2000_ARC" << "\n";
 
@@ -395,7 +423,9 @@ void NLLoc::genButtonClicked()
     }
 
     QMessageBox msgBox;
-    msgBox.setText("Completed file generation.");
+    if(!korean) msgBox.setText("Completed file generation.");
+    else msgBox.setText(codec->toUnicode("설정 값 변경 완료."));
     msgBox.exec();
+
     accept();
 }

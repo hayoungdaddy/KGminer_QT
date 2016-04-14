@@ -22,10 +22,15 @@ class EventMon : public QDialog
     Q_OBJECT
 
 public:
-    explicit EventMon(QWidget *parent = 0);
+    explicit EventMon(CFG cfg, bool _korean = 0, QWidget *parent = 0);
     ~EventMon();
 
     void setup();
+
+    bool korean;
+    CFG c;
+    void setLanguageEn();
+    void setLanguageKo();
 
     void setEventTable();
     void setOriginTable(QString);
@@ -42,6 +47,8 @@ private:
     Ui::EventMon *ui;
 
     QSqlQueryModel *model;
+
+    QTextCodec *codec;
 
 public slots:
     void clickEventTable(int, int);

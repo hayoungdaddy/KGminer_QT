@@ -16,14 +16,14 @@ class SelectStaFile : public QDialog
     Q_OBJECT
 
 public:
-    explicit SelectStaFile(bool _event = 0, QWidget *parent = 0);
+    explicit SelectStaFile(CFG cfg, bool _korean = 0, bool _event = 0, QWidget *parent = 0);
     ~SelectStaFile();
 
     bool korean;
+    CFG c;
     bool event;
     void setLanguageEn();
     void setLanguageKo();
-    void setup();
 
 private:
     Ui::SelectStaFile *ui;

@@ -15,21 +15,25 @@ class MakeOrigin : public QDialog
     Q_OBJECT
 
 public:
-    explicit MakeOrigin(QString evid = 0, QString orid = 0, QWidget *parent = 0);
+    explicit MakeOrigin(CFG cfg, bool _korean = 0, QString evid = 0, QString orid = 0, QWidget *parent = 0);
     ~MakeOrigin();
 
     void setup(QString, QString);
+
+    bool korean;
+    CFG c;
 
     QString EVID;
     QString ORID;
     QString TYPE;
 
-    //NLLoc *nlloc;
+    void setLanguageEn();
+    void setLanguageKo();
 
 private:
     Ui::MakeOrigin *ui;
 
-public slots:
+    QTextCodec *codec;
 
 private slots:
     void on_showButton_clicked();

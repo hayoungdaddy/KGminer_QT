@@ -32,10 +32,12 @@ class LatencyMon : public QFrame
     Q_OBJECT
     
 public:
-    explicit LatencyMon(QWidget *parent = 0);
+    explicit LatencyMon(CFG cfg, QWidget *parent = 0);
     ~LatencyMon();    
 
     void setup();
+
+    CFG c;
 
 public slots:
 

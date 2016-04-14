@@ -6,8 +6,6 @@ DataReciever::DataReciever(CFG cfg, QWidget *parent) :
     ui(new Ui::DataReciever)
 {
     ui->setupUi(this);
-    codec = QTextCodec::codecForName( "utf8" );
-    korean = false;
 
     c = cfg;
 

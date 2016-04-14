@@ -1,44 +1,46 @@
 #include "dataextractor.h"
 #include "ui_dataextractor.h"
 
-DataExtractor::DataExtractor(bool iskorean, QWidget *parent) :
+DataExtractor::DataExtractor(CFG cfg, bool _korean, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DataExtractor)
 {
     ui->setupUi(this);
     codec = QTextCodec::codecForName( "utf8" );
-    korean = iskorean;
+    korean = _korean;
+    c = cfg;
+
+    if(korean)
+        setLanguageKo();
+    else
+        setLanguageEn();
 
     this->model = new QSqlQueryModel();
 
-    db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName(DB);
-    if(!db.open())
+    QString rootDir = c.EVENTDIR + "/TMP";
+    QDir d;
+    d.setPath(rootDir);
+    if(d.exists())
     {
-        QMessageBox msgBox;
-        msgBox.setText(db.lastError().text());
-        msgBox.exec();
-        return;
+        QString cmd = "rm -rf " + rootDir; system(cmd.toLatin1().data());
     }
 
-    selectstafile = new SelectStaFile(true, this);
+    d.mkpath(".");
+    d.setPath(rootDir + "/data/mseed");
+    d.mkpath(".");
+    d.setPath(rootDir + "/data/css");
+    d.mkpath(".");
+    d.setPath(rootDir + "/TMP/LOC");
+    d.mkpath(".");
+    d.setPath(rootDir + "/TMP/NLLOC1/model");
+    d.mkpath(".");
+    d.setPath(rootDir + "/TMP/NLLOC1/time");
+    d.mkpath(".");
+
+    selectstafile = new SelectStaFile(cfg, korean, true, this);
     selectstafile->hide();
 
     ui->pickInfoTW->setColumnWidth(2, 248);
-
-
-    /* find dir & initial */
-    /*
-    MAINDIR = EVENTDIR + "/" + EVID;
-    QString cmd = "mkdir " + MAINDIR; system(cmd.toLatin1().data());
-    cmd = "mkdir " + MAINDIR + "/data"; system(cmd.toLatin1().data());
-    MAINDIR = MAINDIR + "/" + ORID;
-    cmd = "mkdir " + MAINDIR; system(cmd.toLatin1().data());
-    cmd = "mkdir " + MAINDIR + "/LOC"; system(cmd.toLatin1().data());
-    cmd = "mkdir " + MAINDIR + "/NLLOC"; system(cmd.toLatin1().data());
-    */
-
-    //qDebug() << EVID + " " + ORID;
 
     QDateTime now = QDateTime::currentDateTime();
     now = now.addSecs(-(3600*9));
@@ -64,7 +66,6 @@ DataExtractor::DataExtractor(bool iskorean, QWidget *parent) :
 
     /* final */
     connect(ui->saveB, SIGNAL(clicked()), this, SLOT(saveBClicked()));
-
     connect(ui->quitB, SIGNAL(clicked()), this, SLOT(accept()));
 }
 
@@ -73,21 +74,56 @@ DataExtractor::~DataExtractor()
     delete ui;
 }
 
+void DataExtractor::setLanguageEn()
+{
+    setWindowTitle("New Event Maker");
+    ui->step1GB->setTitle("Step 1. Load stations Infomation");
+    ui->step2GB->setTitle("Step 2. Extract data");
+    ui->step3GB->setTitle("Step 3. Pick using Geotool");
+    ui->step4GB->setTitle("Step 4. Run Locator");
+    ui->resultGB->setTitle("Result (Database Infomation)");
+    ui->loadStaInfoB->setText("Load a station file");
+    ui->viewStaLocB->setText("View stations location");
+    ui->extractB->setText("Extract data");
+    ui->resetB->setText("Reset");
+    ui->runGeoB->setText("View waveform");
+    ui->savePickB->setText("Save picks");
+    ui->editParamNLLocB->setText("Edit parameters for NLLoc");
+    ui->runNLLocB->setText("Run NLLoc");
+    ui->saveB->setText("Save");
+    ui->quitB->setText("Quit");
+    ui->staFileNameLB->setText("File name");
+    ui->descLB->setText("Description");
+    ui->timeLB->setText("Start time (GMT)");
+    ui->durationLB->setText("Duration");
+}
+
+void DataExtractor::setLanguageKo()
+{
+    setWindowTitle(codec->toUnicode("신규 이벤트 생성"));
+    ui->step1GB->setTitle(codec->toUnicode("Step 1. 관측소 정보 입력"));
+    ui->step2GB->setTitle(codec->toUnicode("Step 2. 데이터 추출"));
+    ui->step3GB->setTitle(codec->toUnicode("Step 3. P파 피킹"));
+    ui->step4GB->setTitle(codec->toUnicode("Step 4. 진앙지 결정"));
+    ui->resultGB->setTitle(codec->toUnicode("결과 (Database 정보)"));
+    ui->loadStaInfoB->setText(codec->toUnicode("관측소 정보 파일 불러오기"));
+    ui->viewStaLocB->setText(codec->toUnicode("관측소 위치 보기"));
+    ui->extractB->setText(codec->toUnicode("데이터 추출"));
+    ui->resetB->setText(codec->toUnicode("리셋"));
+    ui->runGeoB->setText(codec->toUnicode("파형 보기"));
+    ui->savePickB->setText(codec->toUnicode("피킹정보 저장"));
+    ui->editParamNLLocB->setText(codec->toUnicode("NLLoc 설정값 수정"));
+    ui->runNLLocB->setText(codec->toUnicode("NLLoc 실행"));
+    ui->saveB->setText(codec->toUnicode("저장"));
+    ui->quitB->setText(codec->toUnicode("취소"));
+    ui->staFileNameLB->setText(codec->toUnicode("파일명"));
+    ui->descLB->setText(codec->toUnicode("설명"));
+    ui->timeLB->setText(codec->toUnicode("시작 시간(GMT)"));
+    ui->durationLB->setText(codec->toUnicode("기간"));
+}
+
 void DataExtractor::loadStaInfoBClicked()
 {
-    QString cmd = "rm -rf " + EVENTDIR + "/TMP  >> /dev/null 2>&1"; system(cmd.toLatin1().data());
-    cmd = "mkdir " + EVENTDIR + "/TMP"; system(cmd.toLatin1().data());
-    cmd = "mkdir " + EVENTDIR + "/TMP/data"; system(cmd.toLatin1().data());
-    cmd = "mkdir " + EVENTDIR + "/TMP/data/mseed"; system(cmd.toLatin1().data());
-    cmd = "mkdir " + EVENTDIR + "/TMP/data/css"; system(cmd.toLatin1().data());
-
-    cmd = "mkdir " + EVENTDIR + "/TMP/TMP"; system(cmd.toLatin1().data());
-    cmd = "mkdir " + EVENTDIR + "/TMP/TMP/LOC"; system(cmd.toLatin1().data());
-    cmd = "mkdir " + EVENTDIR + "/TMP/TMP/NLLOC"; system(cmd.toLatin1().data());
-    cmd = "cp " + PARAMSDIR + "/NLLOC/1/grid_p.in " + EVENTDIR + "/TMP/TMP/NLLOC/"; system(cmd.toLatin1().data());
-    cmd = "cp " + PARAMSDIR + "/NLLOC/1/nlloc.in " + EVENTDIR + "/TMP/TMP/NLLOC/"; system(cmd.toLatin1().data());
-    cmd = "echo SVM > " + EVENTDIR + "/TMP/TMP/NLLOC/type"; system(cmd.toLatin1().data());
-
     selectstafile->show();
 }
 
@@ -107,7 +143,7 @@ void DataExtractor::rvSignalfromDataExtractor()
     }
     QFile file;
 
-    file.setFileName(EVENTDIR + "/TMP/sta.info");
+    file.setFileName(c.EVENTDIR + "/TMP/sta.info");
     if( file.open( QIODevice::ReadOnly ) )
     {
         QTextStream stream(&file);
@@ -167,12 +203,11 @@ void DataExtractor::rvSignalfromDataExtractor()
 void DataExtractor::viewStaLocBClicked()
 {
     QString cmd;
-    cmd = "grep -v File " + EVENTDIR + "/TMP/sta.info | grep -v Desc > /usr/local/tomcat/webapps/viewstaloc/sta.info";
+    cmd = "grep -v File " + c.EVENTDIR + "/TMP/sta.info | grep -v Desc > /usr/local/tomcat/webapps/viewstaloc/sta.info";
     system(cmd.toLatin1().data());
     cmd = "firefox 127.0.0.1:8080/viewstaloc/index.jsp &";
     system(cmd.toLatin1().data());
 }
-
 
 /* step 2 */
 void DataExtractor::resetBClicked()
@@ -193,9 +228,9 @@ void DataExtractor::extractBClicked()
 
     for(int i=0;i<stafile.staName.count();i++)
     {
-        QString scn = MSEEDDIR + "/" + year + "/" + stafile.netName[i] + "/" + stafile.staName[i] + "/" + stafile.chanName[i] + ".D/*";
+        QString scn = c.MSEEDDIR + "/" + year + "/" + stafile.netName[i] + "/" + stafile.staName[i] + "/" + stafile.chanName[i] + ".D/*";
         QString cmd;
-        cmd = "qmerge -T -f " + ststr + " -s " + ui->durationED->text() + " -b 512 -o " + EVENTDIR + "/TMP/data/mseed/" +
+        cmd = "qmerge -T -f " + ststr + " -s " + ui->durationED->text() + " -b 512 -o " + c.EVENTDIR + "/TMP/data/mseed/" +
                 stafile.staName[i] + ".mseed" + " " + scn;
         system(cmd.toLatin1().data());
     }
@@ -209,18 +244,18 @@ void DataExtractor::extractBClicked()
 void DataExtractor::runGeoBClicked()
 {
     QString cmd;
-    cmd = SCRIPTDIR + "/mseed2cssUsingGeotool.sh TMP";
+    cmd = c.SCRIPTDIR + "/mseed2cssUsingGeotool.sh TMP";
     system(cmd.toLatin1().data());
-    cmd = SCRIPTDIR + "/viewWave.sh TMP >> /dev/null 2>&1 &";
+    cmd = c.SCRIPTDIR + "/viewWave.sh TMP >> /dev/null 2>&1 &";
     system(cmd.toLatin1().data());
 }
 
 void DataExtractor::savePickBClicked()
 {
-    QString cmd = "cp " + EVENTDIR + "/TMP/data/css/css.arrival " + EVENTDIR + "/TMP/data/css/.css.arrival";
+    QString cmd = "cp " + c.EVENTDIR + "/TMP/data/css/css.arrival " + c.EVENTDIR + "/TMP/data/css/.css.arrival";
     system(cmd.toLatin1().data());
 
-    cmd = SCRIPTDIR + "/makePickforNLLoc.sh TMP";
+    cmd = c.SCRIPTDIR + "/makePickforNLLoc.sh TMP";
     system(cmd.toLatin1().data());
 
     QMessageBox msgBox;
@@ -229,11 +264,11 @@ void DataExtractor::savePickBClicked()
 
     ui->pickInfoTW->setRowCount(0);
 
-    cmd = "cp " + EVENTDIR + "/TMP/picklist " + EVENTDIR + "/TMP/TMP/picklist";
+    cmd = "cp " + c.EVENTDIR + "/TMP/picklist " + c.EVENTDIR + "/TMP/TMP/picklist";
     system(cmd.toLatin1().data());
 
     QFile file;
-    file.setFileName(EVENTDIR + "/TMP/picklist");
+    file.setFileName(c.EVENTDIR + "/TMP/picklist");
     if(file.open( QIODevice::ReadOnly ))
     {
         QTextStream stream(&file);
@@ -265,135 +300,8 @@ void DataExtractor::savePickBClicked()
 
 void DataExtractor::editParamNLLocBClicked()
 {
-    nlloc_gen(stafile);
-    nlloc = new NLLoc("TMP", "TMP", "", this);
-    nlloc->setup();
+    nlloc = new NLLoc(c, korean, "TMP", "TMP", "1", this);
     nlloc->show();
-}
-
-void DataExtractor::nlloc_gen(STAFILE stafile)
-{
-    /* generate grid_p.in file */
-    QString vgout, vggrid, gtfiles, locgrid, locfiles;
-    QStringList layer;
-    QFile file;
-
-    QString avgLatforNLLoc, avgLonforNLLoc;
-    double minlat, maxlat, minlon, maxlon, avglat, avglon;
-
-    int scnCount = stafile.staName.count();
-
-    minlat = 999; maxlat = 0; minlon = 999; maxlon = 0;
-
-    for(int i=0;i<scnCount;i++)
-    {
-        double fx, fy;
-
-        fx = stafile.latD[i].toDouble();
-        fy = stafile.lonD[i].toDouble();
-        if(fx < minlat) minlat = fx;
-        if(fx > maxlat) maxlat = fx;
-        if(fy < minlon) minlon = fy;
-        if(fy > maxlon) maxlon = fy;
-    }
-
-    avglat = (minlat + maxlat) / 2;
-    avglon = (minlon + maxlon) / 2;
-    avgLatforNLLoc = avgLatforNLLoc.setNum(avglat, 'f', 6);
-    avgLonforNLLoc = avgLonforNLLoc.setNum(avglon, 'f', 6);
-
-    double fst, lst;
-    fst = avglat-2;
-    lst = avglat+2;
-
-    file.setFileName(EVENTDIR + "/TMP/TMP/NLLOC/grid_p.in");
-    if( file.open( QIODevice::ReadOnly ) )
-    {
-        QTextStream stream(&file);
-        QString line;
-
-        while(!stream.atEnd())
-        {
-            line = stream.readLine();
-
-            if(line.startsWith("#") || line.isNull() || line.startsWith("["))
-                continue;
-            else if(line.startsWith("VGOUT"))
-                vgout = line;
-            else if(line.startsWith("VGGRID"))
-                vggrid = line;
-            else if(line.startsWith("LAYER"))
-                layer << line;
-            else if(line.startsWith("GTFILES"))
-                gtfiles = line;
-        }
-        file.close();
-    }
-    if( file.open( QIODevice::WriteOnly ))
-    {
-        QTextStream stream( &file ) ;
-        // TRANS  LAMBERT  WGS-84  38.300629 127.320459  37 40  0.0
-        stream << "CONTROL 1 54321" << "\n";
-        stream << "TRANS LAMBERT WGS-84 " << avgLatforNLLoc << " " << avgLonforNLLoc << " " << QString::number(fst) << " " << QString::number(lst) << " 0.0" << "\n";
-        stream << vgout << "\n";
-        stream << "VGTYPE P" << "\n";
-        stream << vggrid << "\n";
-        for(int i=0;i<layer.count();i++)
-            stream << layer[i] << "\n";
-        stream << gtfiles << "\n";
-        stream << "GTMODE GRID3D ANGLES_NO" << "\n";
-        for(int i=0;i<scnCount;i++)
-            stream << "GTSRCE " << stafile.staName[i] << " LATLON " << stafile.latD[i] << " " << stafile.lonD[i] << " 0 " << stafile.elevKm[i] << "\n";
-        stream << "GT_PLFD  1.0e-3  0" << "\n";
-
-        file.close();
-    }
-
-    file.setFileName(EVENTDIR + "/TMP/TMP/NLLOC/nlloc.in");
-    if( file.open( QIODevice::ReadOnly ) )
-    {
-        QTextStream stream(&file);
-        QString line;
-
-        while(!stream.atEnd())
-        {
-            line = stream.readLine();
-
-            if(line.startsWith("#") || line.isNull() || line.startsWith("["))
-                continue;
-            else if(line.startsWith("LOCGRID"))
-                locgrid = line;
-            else if(line.startsWith("LOCFILES"))
-                locfiles = line;
-        }
-        file.close();
-    }
-    if( file.open( QIODevice::WriteOnly ))
-    {
-        QTextStream stream( &file ) ;
-        stream << "CONTROL 1 54321" << "\n";
-        stream << "TRANS LAMBERT WGS-84 " << avgLatforNLLoc << " " << avgLonforNLLoc << " " << QString::number(fst) << " " << QString::number(lst) << " 0.0" << "\n";
-        stream << "LOCSIG  KGminer" << "\n";
-        stream << "LOCCOM KGminer" << "\n";
-        stream << "LOCMETH  EDT_OT_WT 1.0e6 2 25  -1 -1.80 6 -1.0 0" << "\n";
-        stream << "LOCHYPOUT  SAVE_NLLOC_ALL SAVE_HYPOINVERSE_Y2000_ARC" << "\n";
-        stream << "LOCGAU 0.5 0.0" << "\n";
-        stream << "LOCGAU2 0.02 0.1 2.0" << "\n";
-        stream << "LOCPHASEID  P   P p G PN Pn P* Pg PG Pb PB" << "\n";
-        stream << "LOCPHASEID  S   S s G SN Sn S* Sg SG Sb SB" << "\n";
-        stream << "LOCQUAL2ERR 0.1 0.2 0.5 1.0 99999.9" << "\n";
-        stream << "LOCSEARCH  OCT 10 10 4 0.01 10000 5000 0 1" << "\n";
-        stream << locgrid << "\n";
-        stream << "LOCPHSTAT 9999.0 -1 9999.0 1.0 1.0 9999.9 -9999.9 9999.9" << "\n";
-        stream << "LOCANGLES ANGLES_NO 5" << "\n";
-        stream << "LOCMAG  ML_HB 1.0 1.110 0.00189" << "\n";
-        stream << "LOCELEVCORR 1 5.8 3.46" << "\n";
-        stream << "LOCSTAWT 0 -1.0" << "\n";
-        stream << locfiles << "\n";
-        stream << "LOCHYPOUT SAVE_HYPOINVERSE_Y2000_ARC" << "\n";
-
-        file.close();
-    }
 }
 
 void DataExtractor::runNLLocBClicked()
@@ -401,7 +309,7 @@ void DataExtractor::runNLLocBClicked()
     ui->runNLLocB->setEnabled(false);
 
     QFile file;
-    file.setFileName(EVENTDIR + "/TMP/TMP/NLLOC/type");
+    file.setFileName(c.EVENTDIR + "/TMP/TMP/NLLOC/type");
     QString minv,maxv;
 
     if(file.open( QIODevice::ReadOnly ))
@@ -421,16 +329,16 @@ void DataExtractor::runNLLocBClicked()
         file.close();
     }
 
-    QString cmd = "cp " + EVENTDIR + "/TMP/data/css/css.arrival " + EVENTDIR + "/TMP/data/css/.css.arrival";
+    QString cmd = "cp " + c.EVENTDIR + "/TMP/data/css/css.arrival " + c.EVENTDIR + "/TMP/data/css/.css.arrival";
     system(cmd.toLatin1().data());
 
     if(TYPE == "SVM")
     {
-        cmd = SCRIPTDIR + "/runNLLocSVM.sh TMP TMP 0";
+        cmd = c.SCRIPTDIR + "/runNLLocSVM.sh TMP TMP 0";
     }
     else if(TYPE == "MVM")
     {
-        cmd = SCRIPTDIR + "/runNLLocMVM.sh TMP TMP 0 " + minv + " " + maxv;
+        cmd = c.SCRIPTDIR + "/runNLLocMVM.sh TMP TMP 0 " + minv + " " + maxv;
     }
     system(cmd.toLatin1().data());
 
@@ -440,7 +348,7 @@ void DataExtractor::runNLLocBClicked()
 
     ui->runNLLocB->setEnabled(true);
 
-    file.setFileName(EVENTDIR + "/TMP/TMP/LOC/NLLOC.origin");
+    file.setFileName(c.EVENTDIR + "/TMP/TMP/LOC/NLLOC.origin");
 
     if( file.open( QIODevice::ReadOnly ) )
     {
@@ -491,12 +399,12 @@ void DataExtractor::runNLLocBClicked()
 void DataExtractor::saveBClicked()
 {
     QString cmd;
-    cmd = "mv " + EVENTDIR + "/TMP " + EVENTDIR + "/" + EVID; system(cmd.toLatin1().data());
-    cmd = "mv " + EVENTDIR + "/" + EVID + "/TMP " + EVENTDIR + "/" + EVID + "/" + ORID; system(cmd.toLatin1().data());
-    cmd = "cp -R " + EVENTDIR + "/" + EVID + "/data " + EVENTDIR + "/" + EVID + "/" + ORID + "/"; system(cmd.toLatin1().data());
+    cmd = "mv " + c.EVENTDIR + "/TMP " + c.EVENTDIR + "/" + EVID; system(cmd.toLatin1().data());
+    cmd = "mv " + c.EVENTDIR + "/" + EVID + "/TMP " + c.EVENTDIR + "/" + EVID + "/" + ORID; system(cmd.toLatin1().data());
+    cmd = "cp -R " + c.EVENTDIR + "/" + EVID + "/data " + c.EVENTDIR + "/" + EVID + "/" + ORID + "/"; system(cmd.toLatin1().data());
 
-    cmd = SCRIPTDIR + "/inputDatatoDB.sh " + EVID + " " + ORID + " Manual " + TYPE;
-    qDebug() << cmd;
+    cmd = c.SCRIPTDIR + "/inputDatatoDB.sh " + EVID + " " + ORID + " Manual " + TYPE;
+    //qDebug() << cmd;
     system(cmd.toLatin1().data());
 
     cmd = "pkill geotool";

@@ -489,7 +489,7 @@ QGroupBox::title {
 }</string>
    </property>
    <property name="title">
-    <string>Data Lists</string>
+    <string/>
    </property>
    <widget class="QTableWidget" name="tableWidget">
     <property name="geometry">

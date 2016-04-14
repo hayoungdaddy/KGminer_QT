@@ -491,40 +491,6 @@
     <enum>QFrame::Plain</enum>
    </property>
   </widget>
-  <widget class="QLabel" name="lb1">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>171</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background-color: rgb(170, 255, 255);</string>
-   </property>
-   <property name="frameShape">
-    <enum>QFrame::Box</enum>
-   </property>
-   <property name="frameShadow">
-    <enum>QFrame::Plain</enum>
-   </property>
-   <property name="text">
-    <string>File Name</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
   <widget class="QListWidget" name="listWidgetDesc">
    <property name="enabled">
     <bool>false</bool>
@@ -542,40 +508,6 @@
    </property>
    <property name="frameShadow">
     <enum>QFrame::Plain</enum>
-   </property>
-  </widget>
-  <widget class="QLabel" name="lb2">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="geometry">
-    <rect>
-     <x>180</x>
-     <y>10</y>
-     <width>261</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background-color: rgb(170, 255, 255);</string>
-   </property>
-   <property name="frameShape">
-    <enum>QFrame::Box</enum>
-   </property>
-   <property name="frameShadow">
-    <enum>QFrame::Plain</enum>
-   </property>
-   <property name="text">
-    <string>Description</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
    </property>
   </widget>
   <widget class="QWidget" name="horizontalLayoutWidget">
@@ -604,13 +536,57 @@
     </item>
    </layout>
   </widget>
+  <widget class="QLabel" name="lb1">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>171</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>File Name</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lb2">
+   <property name="geometry">
+    <rect>
+     <x>180</x>
+     <y>10</y>
+     <width>261</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Description</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
   <zorder>LB12</zorder>
   <zorder>stafileLE</zorder>
   <zorder>listWidget</zorder>
-  <zorder>lb1</zorder>
   <zorder>listWidgetDesc</zorder>
-  <zorder>lb2</zorder>
   <zorder>horizontalLayoutWidget</zorder>
+  <zorder>lb1</zorder>
+  <zorder>lb2</zorder>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <tabstops>

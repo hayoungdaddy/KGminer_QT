@@ -1,13 +1,14 @@
 #include "latencymon.h"
 #include "ui_latencymon.h"
 
-LatencyMon::LatencyMon(QWidget *parent) :
+LatencyMon::LatencyMon(CFG cfg, QWidget *parent) :
     QFrame(parent),
     LatencyMon_ui(new Ui::LatencyMon)
 {
     LatencyMon_ui->setupUi(this);
+    c = cfg;
 
-    rvMsgSock_port = LATENCYSOCKNUM ;
+    rvMsgSock_port = c.LATENCYSOCKET.toInt();
 
     rvMsgSock = new QUdpSocket(this);
     localhost.setAddress( "127.0.0.1" ) ;
@@ -32,7 +33,7 @@ LatencyMon::LatencyMon(QWidget *parent) :
     LatencyMon_ui->LatencyTable->setColumnWidth(2, 130);
     //LatencyMon_ui->LatencyTable->setColumnWidth(3, 80);
 
-    QFile file(PARAMSDIR + "/sta.info");
+    QFile file(c.PARAMSDIR + "/sta.info");
     if( file.open( QIODevice::ReadOnly ) )
     {
         QTextStream stream(&file);

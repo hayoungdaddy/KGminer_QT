@@ -14,10 +14,11 @@ class Binder : public QDialog
     Q_OBJECT
 
 public:
-    explicit Binder(QWidget *parent = 0);
+    explicit Binder(CFG cfg, bool _korean = 0, QWidget *parent = 0);
     ~Binder();
 
     bool korean;
+    CFG c;
     void setLanguageEn();
     void setLanguageKo();
     void setup();

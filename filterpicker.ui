@@ -471,10 +471,6 @@
      <bold>true</bold>
     </font>
    </property>
-   <property name="styleSheet">
-    <string notr="true">background-color: rgb(170, 255, 255);
-background-color: rgb(170, 170, 0);</string>
-   </property>
    <property name="frameShape">
     <enum>QFrame::Box</enum>
    </property>
@@ -507,8 +503,7 @@ background-color: rgb(170, 170, 0);</string>
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">background-color: rgb(170, 255, 255);
-background-color: rgb(170, 170, 0);</string>
+    <string notr="true"/>
    </property>
    <property name="frameShape">
     <enum>QFrame::Box</enum>
@@ -568,8 +563,7 @@ background-color: rgb(170, 170, 0);</string>
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">background-color: rgb(170, 255, 255);
-background-color: rgb(170, 170, 0);</string>
+    <string notr="true"/>
    </property>
    <property name="frameShape">
     <enum>QFrame::Box</enum>
@@ -625,8 +619,7 @@ background-color: rgb(170, 170, 0);</string>
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">background-color: rgb(170, 255, 255);
-background-color: rgb(170, 170, 0);</string>
+    <string notr="true"/>
    </property>
    <property name="frameShape">
     <enum>QFrame::Box</enum>
@@ -792,8 +785,7 @@ background-color: rgb(170, 170, 0);</string>
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">background-color: rgb(170, 255, 255);
-background-color: rgb(170, 170, 0);</string>
+    <string notr="true"/>
    </property>
    <property name="frameShape">
     <enum>QFrame::Box</enum>
@@ -1763,8 +1755,7 @@ background-color: rgb(170, 170, 0);</string>
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">background-color: rgb(170, 170, 0);
-background-color: rgb(170, 255, 0);</string>
+    <string notr="true"/>
    </property>
    <property name="frameShape">
     <enum>QFrame::Box</enum>

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>391</width>
-    <height>860</height>
+    <height>885</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -766,7 +766,6 @@ Viewer</string>
     <addaction name="actionDataMonitor"/>
     <addaction name="separator"/>
     <addaction name="actionLanguage"/>
-    <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -778,6 +777,7 @@ Viewer</string>
    <addaction name="menuFile"/>
    <addaction name="menuHelp"/>
   </widget>
+  <widget class="QStatusBar" name="statusBar"/>
   <action name="actionExit">
    <property name="text">
     <string>Exit</string>

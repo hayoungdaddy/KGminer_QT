@@ -1,18 +1,17 @@
 #include "viewstation.h"
 
-ViewStation::ViewStation(QWidget *parent) :
+ViewStation::ViewStation(CFG cfg, bool _korean, QWidget *parent) :
     QDialog(parent)
 {
     codec = QTextCodec::codecForName( "utf8" );
-    korean=false;
+    korean = _korean;
+
+    c = cfg;
 
     count = 0;
 
-    if(!korean) setWindowTitle("Config Stations Information");
-    else setWindowTitle(codec->toUnicode("관측소 정보 설정"));
-
     QFile file;
-    file.setFileName(PARAMSDIR + "/sta.info");
+    file.setFileName(c.PARAMSDIR + "/sta.info");
     if( file.open( QIODevice::ReadOnly ) )
     {
         QTextStream stream(&file);
@@ -57,22 +56,12 @@ ViewStation::ViewStation(QWidget *parent) :
     middlelayout = new QVBoxLayout;
     buttomlayout = new QHBoxLayout;
 
-    addbutton = new QPushButton;
-    if(!korean) addbutton->setText("Add new line");
-    else addbutton->setText(codec->toUnicode("관측소 입력 라인 추가"));
-    genbutton = new QPushButton;
-    if(!korean) genbutton->setText("Generate");
-    else genbutton->setText(codec->toUnicode("설정 값 변경"));
-    viewstabutton = new QPushButton;
-    if(!korean) viewstabutton->setText("View stations location");
-    else viewstabutton->setText(codec->toUnicode("관측소 위치 보기"));
+    addbutton = new QPushButton;  
+    genbutton = new QPushButton;   
+    viewstabutton = new QPushButton;   
     quitbutton = new QPushButton;
-    if(!korean) quitbutton->setText("Cancel");
-    else quitbutton->setText(codec->toUnicode("종료"));
 
-    la1 = new QLabel;
-    if(!korean) la1->setText("File Name");
-    else la1->setText(codec->toUnicode("파일명"));
+    la1 = new QLabel; 
     la1->setAlignment(Qt::AlignCenter);
     filenameLE = new QLineEdit;
     filenameLE->setAlignment(Qt::AlignCenter);
@@ -81,9 +70,7 @@ ViewStation::ViewStation(QWidget *parent) :
     toplayout->addWidget(la1);
     toplayout->addWidget(filenameLE);
 
-    la2 = new QLabel;
-    if(!korean) la2->setText("Description");
-    else la2->setText(codec->toUnicode("설명"));
+    la2 = new QLabel;   
     la2->setAlignment(Qt::AlignCenter);
     descLE = new QLineEdit;
     descLE->setAlignment(Qt::AlignCenter);
@@ -91,6 +78,27 @@ ViewStation::ViewStation(QWidget *parent) :
     descLE->setEnabled(false);
     toplayout2->addWidget(la2);
     toplayout2->addWidget(descLE);
+
+    if(!korean)
+    {
+        setWindowTitle("Config Stations Information");
+        addbutton->setText("Add new line");
+        genbutton->setText("Generate");
+        viewstabutton->setText("View stations location");
+        quitbutton->setText("Cancel");
+        la1->setText("File Name");
+        la2->setText("Description");
+    }
+    else
+    {
+        setWindowTitle(codec->toUnicode("관측소 정보 설정"));
+        addbutton->setText(codec->toUnicode("관측소 입력 라인 추가"));
+        genbutton->setText(codec->toUnicode("설정 값 변경"));
+        viewstabutton->setText(codec->toUnicode("관측소 위치 보기"));
+        quitbutton->setText(codec->toUnicode("종료"));
+        la1->setText(codec->toUnicode("파일명"));
+        la2->setText(codec->toUnicode("설명"));
+    }
 
     QLabel* label = new QLabel[7];
     label[0].setText("Station Code");
@@ -134,37 +142,10 @@ ViewStation::~ViewStation()
 {
 }
 
-void ViewStation::setLanguageEn()
-{
-    setWindowTitle("Config Stations Information");
-    addbutton->setText("Add new line");
-    viewstabutton->setText("View stations location");
-    genbutton->setText("Generate");
-    quitbutton->setText("Cancel");
-    la1->setText("File Name");
-    la2->setText("Description");
-}
-
-void ViewStation::setLanguageKo()
-{
-    setWindowTitle(codec->toUnicode("관측소 정보 수정"));
-    addbutton->setText(codec->toUnicode("관측소 입력 라인 추가"));
-    viewstabutton->setText(codec->toUnicode("관측소 위치 보기"));
-    genbutton->setText(codec->toUnicode("설정 값 변경"));
-    quitbutton->setText(codec->toUnicode("종료"));
-    la1->setText(codec->toUnicode("파일명(영문, 숫자만 사용)"));
-    la2->setText(codec->toUnicode("설명(영문, 숫자만 사용)"));
-}
-
-void ViewStation::setup()
-{
-
-}
-
 void ViewStation::viewstabuttonClicked()
 {
     QString cmd;
-    cmd = "grep -v File " + PARAMSDIR + "/sta.info | grep -v Desc > /usr/local/tomcat/webapps/viewstaloc/sta.info";
+    cmd = "grep -v File " + c.PARAMSDIR + "/sta.info | grep -v Desc > /usr/local/tomcat/webapps/viewstaloc/sta.info";
     system(cmd.toLatin1().data());
     cmd = "firefox 127.0.0.1:8080/viewstaloc/index.jsp &";
     system(cmd.toLatin1().data());
@@ -216,8 +197,6 @@ void ViewStation::addbutton_clicked()
     lonle->setAlignment(Qt::AlignCenter);
     elevle->setAlignment(Qt::AlignCenter);
 
-    //qDebug() << "index " << QString::number(qlist.count());
-
     hlayout->addWidget(stale);
     hlayout->addWidget(chanle);
     hlayout->addWidget(locle);
@@ -239,11 +218,8 @@ void ViewStation::addbutton_clicked()
 
 void ViewStation::lineedit_textChanged(QString text)
 {
-    //unsigned int index = 0;
     QObject *obj = QObject::sender();
     QString senderobjName = obj->objectName();
-
-    //qDebug() << senderobjName;
 
     int isTextchanged = senderobjName.indexOf("lineedit") != -1;
 
@@ -259,8 +235,6 @@ void ViewStation::lineedit_textChanged(QString text)
         else if(j == 4) lat[i] = text;
         else if(j == 5) lon[i] = text;
         else if(j == 6) elev[i] = text;
-
-        //qDebug() << QString::number(i) << " " << QString::number(j) << " " << text;
     }
 }
 
@@ -278,7 +252,7 @@ void ViewStation::genButtonClicked()
     QFile file;
 
     /* generate station file. */
-    QString staFileName = PARAMSDIR + "/staInfo/" + filenameLE->text() + ".sta";
+    QString staFileName = c.PARAMSDIR + "/staInfo/" + filenameLE->text() + ".sta";
     file.setFileName( staFileName );
 
     if( file.open( QIODevice::WriteOnly ) )
@@ -294,7 +268,7 @@ void ViewStation::genButtonClicked()
         file.close() ;
     }
 
-    QString cmd = "cp " + staFileName + " " + PARAMSDIR + "/sta.info";
+    QString cmd = "cp " + staFileName + " " + c.PARAMSDIR + "/sta.info";
     system(cmd.toLatin1().data());
 
     STAFILE stafile;
@@ -304,7 +278,7 @@ void ViewStation::genButtonClicked()
     double minlat, maxlat, minlon, maxlon, avglat, avglon;
 
     int scnCount;
-    file.setFileName(PARAMSDIR + "/sta.info");
+    file.setFileName(c.PARAMSDIR + "/sta.info");
 
     if( file.open( QIODevice::ReadOnly ) )
     {
@@ -385,13 +359,13 @@ void ViewStation::genButtonClicked()
     }
 
     FileGenerator *gen = new FileGenerator;
-    gen->pick_ew_gen(stafile);
-    gen->pick_FP_gen(stafile);
-    gen->hinv_gen(stafile);
-    gen->tanklist_gen(stafile);
-    gen->binder_gen(minLatforBinder, maxLatforBinder, minLonforBinder, maxLonforBinder);
-    gen->ew2mseed_gen(stafile);
-    gen->nlloc_gen(stafile, avgLatforNLLoc, avgLonforNLLoc);
+    gen->pick_ew_gen(c, stafile);
+    gen->pick_FP_gen(c, stafile);
+    gen->hinv_gen(c, stafile);
+    gen->tanklist_gen(c, stafile);
+    gen->binder_gen(c, minLatforBinder, maxLatforBinder, minLonforBinder, maxLonforBinder);
+    gen->ew2mseed_gen(c, stafile);
+    gen->nlloc_gen(false, c, stafile, avgLatforNLLoc, avgLonforNLLoc);
 
     QMessageBox msgBox;
     if(!korean) msgBox.setText("Staions Info. file generated and loaded.");

@@ -1,15 +1,28 @@
 #include "datamonitor.h"
 #include "ui_datamonitor.h"
 
-DataMonitor::DataMonitor(CFG cfg, QWidget *parent) :
+DataMonitor::DataMonitor(CFG cfg, bool _korean, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DataMonitor)
 {
     ui->setupUi(this);
     codec = QTextCodec::codecForName( "utf8" );
-    korean=false;
+    korean = _korean;
 
     c = cfg;
+
+    ui->tableWidget->setRowCount(1);
+
+    for(int i=0;i<24;i++)
+        ui->tableWidget->setItem(0, i, new QTableWidgetItem(""));
+
+    ui->pb->setRange(0, 100);
+    ui->pb->setValue(0);
+
+    if(korean)
+        setLanguageKo();
+    else
+        setLanguageEn();
 
     connect(ui->calendarWidget, SIGNAL(currentPageChanged(int,int)), this, SLOT(changePage(int, int)));
     connect(ui->calendarWidget, SIGNAL(clicked(QDate)), this, SLOT(clickCalendar(QDate)));
@@ -21,26 +34,19 @@ DataMonitor::~DataMonitor()
     delete ui;
 }
 
-void DataMonitor::setup()
-{
-    ui->tableWidget->setRowCount(1);
-
-    for(int i=0;i<24;i++)
-        ui->tableWidget->setItem(0, i, new QTableWidgetItem(""));
-
-    ui->pb->setRange(0, 100);
-    ui->pb->setValue(0);
-}
-
 void DataMonitor::setLanguageEn()
 {
     setWindowTitle("Data availability monitor");
+    ui->groupBox->setTitle("Calendar");
+    ui->groupBox2->setTitle("Data availability (each hour)");
     ui->quitButton->setText("Quit");
 }
 
 void DataMonitor::setLanguageKo()
 {
     setWindowTitle(codec->toUnicode("지진 데이터 가용성 모니터링"));
+    ui->groupBox->setTitle(codec->toUnicode("달력"));
+    ui->groupBox2->setTitle(codec->toUnicode("데이터 가용성 (매 시)"));
     ui->quitButton->setText(codec->toUnicode("종료"));
 }
 
@@ -73,7 +79,6 @@ void DataMonitor::changePage(int year, int month)
         temp = QString::number(i);
         if(temp.count() == 1) temp = "00" + temp; else if(temp.count() == 2) temp = "0" + temp;
         cmd = "find " + c.MSEEDDIR + " | grep " + QString::number(firstDayofMonth.year()) + "." + temp + " > " + c.TMPDIR + "/findFull";
-        //qDebug() << cmd;
         system(cmd.toLatin1().data());
 
         QFile file;

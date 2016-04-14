@@ -1,11 +1,12 @@
 #include "picklist.h"
 #include "ui_picklist.h"
 
-PickList::PickList(QWidget *parent) :
+PickList::PickList(CFG cfg, QWidget *parent) :
     QFrame(parent),
     PickList_ui(new Ui::PickList)
 {
     PickList_ui->setupUi(this);
+    c = cfg;
 
     today = QDate::currentDate();
 
@@ -35,7 +36,6 @@ void PickList::checkdate()
     {
         today = date;
         setup();
-        //clear();
     }
 }
 
@@ -45,10 +45,10 @@ void PickList::setup()
     year = today.toString("yyyy");
     month = today.toString("MM");
     day = today.toString("dd");
-    QString pickfile = DATADIR + "/pick/picks." + year + month + day;
+    QString pickfile = c.PICKDIR + "/picks." + year + month + day;
     QString program = "tail";
     QStringList arguments;
-    arguments << "-f" << pickfile;
+    arguments << "-0f" << pickfile;
 
     pickProcess->start(program, arguments);
 }

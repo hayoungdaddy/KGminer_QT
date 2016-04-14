@@ -1,12 +1,20 @@
 #include "eventmon.h"
 #include "ui_eventmon.h"
 
-EventMon::EventMon(QWidget *parent) :
+EventMon::EventMon(CFG cfg, bool _korean, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::EventMon)
 {
     ui->setupUi(this);
-    //codec = QTextCodec::codecForName( "utf8" );
+    codec = QTextCodec::codecForName( "utf8" );
+
+    c = cfg;
+    korean = _korean;
+
+    if(korean)
+        setLanguageKo();
+    else
+        setLanguageEn();
 
     this->model = new QSqlQueryModel();
 
@@ -18,7 +26,7 @@ EventMon::EventMon(QWidget *parent) :
     setOriginTable(evid);
     setAssocTable(orid);
 
-    makeorigin = new MakeOrigin("0", "0", this);
+    makeorigin = new MakeOrigin(c, korean, "0", "0", this);
     makeorigin->hide();
 
     /* Process Status Setup */
@@ -37,19 +45,22 @@ EventMon::~EventMon()
     delete ui;
 }
 
+void EventMon::setLanguageEn()
+{
+
+}
+
+void EventMon::setLanguageKo()
+{
+
+}
+
 void EventMon::setup()
 {
     QModelIndex index1 = ui->eventTable->currentIndex();
     setEventTable();
-    //eventmodel->setQuery("SELECT max(evid) FROM event");
-    //evid = eventmodel->record(0).value("max(evid)").toString();
-    //originmodel->setQuery("SELECT min(orid) FROM origin where evid = " + evid);
-    //orid = originmodel->record(0).value("min(orid)").toString();
-    //setOriginTable(evid);
-    //setAssocTable(orid);
 
     ui->eventTable->setCurrentIndex(index1);
-
 }
 
 void EventMon::setEventTable()
@@ -157,17 +168,16 @@ void EventMon::setAssocTable(QString orid)
 
 void EventMon::clickEventTable(int row, int col)
 {
-
-        evid = ui->eventTable->item(row, 0)->text();
-        setOriginTable(evid);
-        model->setQuery("SELECT min(orid) FROM origin where evid = " + evid);
-        orid = model->record(0).value("min(orid)").toString();
-        setAssocTable(orid);
+    evid = ui->eventTable->item(row, 0)->text();
+    setOriginTable(evid);
+    model->setQuery("SELECT min(orid) FROM origin where evid = " + evid);
+    orid = model->record(0).value("min(orid)").toString();
+    setAssocTable(orid);
 
     if(col == 2)
     {
         evid = ui->eventTable->item(row, 0)->text();
-        QString cmd = SCRIPTDIR + "/viewWave.sh " + evid + " >> /dev/null 2>&1 &";
+        QString cmd = c.SCRIPTDIR + "/viewWave.sh " + evid + " >> /dev/null 2>&1 &";
         system(cmd.toLatin1().data());
     }
     else if(col == 3)
@@ -175,8 +185,7 @@ void EventMon::clickEventTable(int row, int col)
         QString cmd;
         cmd = "rm /usr/local/tomcat/webapps/eventviewer/origin.info"; system(cmd.toLatin1().data());
         evid = ui->eventTable->item(row, 0)->text();
-        //cmd = "cp " + EVENTDIR + "/" + evid + "/sta.info /usr/local/tomcat/webapps/eventviewer/sta.info"; system(cmd.toLatin1().data());
-        cmd = "grep -v File " + EVENTDIR + "/" + evid + "/sta.info | grep -v Desc > /usr/local/tomcat/webapps/eventviewer/sta.info"; system(cmd.toLatin1().data());
+        cmd = "grep -v File " + c.EVENTDIR + "/" + evid + "/sta.info | grep -v Desc > /usr/local/tomcat/webapps/eventviewer/sta.info"; system(cmd.toLatin1().data());
         model->setQuery("SELECT lat, lon, depth, time, orid, evid, l_algorithm, lddate FROM origin WHERE evid = " + evid);
         for(int i=0;i<model->rowCount();++i)
         {
@@ -206,11 +215,11 @@ void EventMon::clickEventTable(int row, int col)
                     QString::null, 1, 1 ) )
         {
             QString cmd;
-            cmd = "sqlite3 " + DB + " \"delete from event where evid=" + ui->eventTable->item(row, 0)->text() + "\"";
+            cmd = "sqlite3 " + c.DBDIR + "/" + c.DBNAME + " \"delete from event where evid=" + ui->eventTable->item(row, 0)->text() + "\"";
             system(cmd.toLatin1().data());
-            cmd = "sqlite3 " + DB + " \"delete from origin where evid=" + ui->eventTable->item(row, 0)->text() + "\"";
+            cmd = "sqlite3 " + c.DBDIR + "/" + c.DBNAME + " \"delete from origin where evid=" + ui->eventTable->item(row, 0)->text() + "\"";
             system(cmd.toLatin1().data());
-            cmd = "sqlite3 " + DB + " \"delete from assoc where orid=" + ui->originTable->item(row, 0)->text() + "\"";
+            cmd = "sqlite3 " + c.DBDIR + "/" + c.DBNAME + " \"delete from assoc where orid=" + ui->originTable->item(row, 0)->text() + "\"";
             system(cmd.toLatin1().data());
             setup();
         }
@@ -228,17 +237,17 @@ void EventMon::clickOriginTable(int row, int col)
     if(col == 6)
     {
         orid = ui->originTable->item(row, 0)->text();
-        QString cmd = SCRIPTDIR + "/viewWave.sh " + evid + " " + orid + " >> /dev/null 2>&1 &";
+        QString cmd = c.SCRIPTDIR + "/viewWave.sh " + evid + " " + orid + " >> /dev/null 2>&1 &";
         system(cmd.toLatin1().data());
     }
     else if(col == 7)
     {
         QTextEdit *edit = new QTextEdit();
-        edit->setWindowTitle(EVENTDIR + "/" + evid + "/" + orid + "/LOC/summary");
+        edit->setWindowTitle(c.EVENTDIR + "/" + evid + "/" + orid + "/LOC/summary");
         edit->setMinimumWidth(1200); //edit->setMaximumWidth(1000);
         edit->setMinimumHeight(600); //edit->setMaximumHeight(800);
         QFile file;
-        file.setFileName(EVENTDIR + "/" + evid + "/" + orid + "/LOC/summary");
+        file.setFileName(c.EVENTDIR + "/" + evid + "/" + orid + "/LOC/summary");
         if( file.open( QIODevice::ReadOnly ) )
         {
             QTextStream stream(&file);
@@ -257,16 +266,16 @@ void EventMon::clickOriginTable(int row, int col)
     else if(col == 8)
     {
         QTextEdit *edit = new QTextEdit();
-        edit->setWindowTitle(EVENTDIR + "/" + evid + "/" + orid + "/NLLOC/*.log");
+        edit->setWindowTitle(c.EVENTDIR + "/" + evid + "/" + orid + "/NLLOC/*.log");
         edit->setMinimumWidth(1200); //edit->setMaximumWidth(1000);
         edit->setMinimumHeight(600); //edit->setMaximumHeight(800);
         QFile file;
 
         for(int i=0;i<3;i++)
         {
-            if(i==0) file.setFileName(EVENTDIR + "/" + evid + "/" + orid + "/NLLOC/Vel2Grid.log");
-            else if(i==1) file.setFileName(EVENTDIR + "/" + evid + "/" + orid + "/NLLOC/Grid2Time.log");
-            else if(i==2) file.setFileName(EVENTDIR + "/" + evid + "/" + orid + "/NLLOC/NLLoc.log");
+            if(i==0) file.setFileName(c.EVENTDIR + "/" + evid + "/" + orid + "/NLLOC/Vel2Grid.log");
+            else if(i==1) file.setFileName(c.EVENTDIR + "/" + evid + "/" + orid + "/NLLOC/Grid2Time.log");
+            else if(i==2) file.setFileName(c.EVENTDIR + "/" + evid + "/" + orid + "/NLLOC/NLLoc.log");
             if( file.open( QIODevice::ReadOnly ) )
             {
                 QTextStream stream(&file);
@@ -295,7 +304,6 @@ void EventMon::clickOriginTable(int row, int col)
 
 void EventMon::on_makeOrigin_clicked()
 {
-    //qDebug() << ui->eventTable->currentRow();
     QString str = "Do you want to make new origin using evid " + evid + " data?\n\nAre you sure to close all Geotool windows?";
     if( !QMessageBox::question( this,
                                 "Warning",
@@ -313,13 +321,11 @@ void EventMon::on_makeOrigin_clicked()
         QString neworid;
         neworid = neworid.setNum(t, 10);
 
-        cmd = SCRIPTDIR + "/makeNewOrigin.sh " + evid + " " + neworid + " >> /dev/null 2>&1 &";
+        cmd = c.SCRIPTDIR + "/makeNewOrigin.sh " + evid + " " + neworid + " >> /dev/null 2>&1 &";
         system(cmd.toLatin1().data());
 
-        //makeorigin = new MakeOrigin(evid, neworid, this);
         makeorigin->setup(evid, neworid);
         makeorigin->show();
-
     }
     else
         return;

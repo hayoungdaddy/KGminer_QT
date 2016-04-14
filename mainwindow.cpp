@@ -16,6 +16,9 @@ MainWindow::MainWindow(QWidget *parent) :
     util = new Util();
     cfg = util->readCfg();
 
+    QString cmd = "source " + cfg.PARAMSDIR + "/ew_linux.bash";
+    system(cmd.toLatin1().data());
+
     /* open Database */
     openDB();
 
@@ -31,43 +34,34 @@ MainWindow::MainWindow(QWidget *parent) :
     eventgenerator->moveToThread(eventcheckthred);
     eventcheckthred->start();
 
-    /* ActionMenu Dialogs */
-    importdata = new ImportData(cfg, this);
-    importdata->hide();
-    datamonitor = new DataMonitor(cfg, this);
-    datamonitor->hide();
-    selectstafile = new SelectStaFile(false, this);
-    selectstafile->hide();
-
     /* Mainwindow GUI Dialog */
-    latencymon = new LatencyMon(ui->statusFrame);
+    latencymon = new LatencyMon(cfg, ui->statusFrame);
     latencymon->show();
-    picklist = new PickList(ui->pickframe);
+    picklist = new PickList(cfg, ui->pickframe);
     picklist->show();
 
-    /* Process Dialogs */
-    binder = new Binder(this);
-    binder->hide();
-    viewlogFP = new ViewLog(this );
-    viewlogFP->hide();
-    viewlogBI = new ViewLog(this );
-    viewlogBI->hide();
-    viewlogNL = new ViewLog(this );
-    viewlogNL->hide();
-    viewlogTK = new ViewLog(this );
-    viewlogTK->hide();
-
-
-    /* Mainbutton Dialogs */
-
-    /* Process Submenu */
+    /* Process Submenus */
     xmenu = new QMenu();
     submenu = xmenu->addMenu("Process_Submenu");
-    //sub1 = submenu->addAction("Stop");
+    sub1 = submenu->addAction("Stop");
     sub2 = submenu->addAction("Restart");
     sub3 = submenu->addAction("Edit Parameters");
-    //sub4 = submenu->addAction("View Logs");
+    sub4 = submenu->addAction("View Logs");
     submenu->hide();
+
+    /* Process Dialogs */
+    //binder = new Binder(this);
+    //binder->hide();
+    /*
+    viewlogFP = new ViewLog(this);
+    viewlogFP->hide();
+    viewlogBI = new ViewLog(this);
+    viewlogBI->hide();
+    viewlogNL = new ViewLog(this);
+    viewlogNL->hide();
+    viewlogTK = new ViewLog(this);
+    viewlogTK->hide();
+    */
 
     /* Main Menu Connection */
     connect(ui->stainfoButton, SIGNAL(clicked()), this, SLOT(stainfoViewerShow()));
@@ -96,10 +90,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionExit, SIGNAL(triggered()), this, SLOT(actionExitClicked()));
 
     /* SubMenu Connection */
-    //connect(sub1, SIGNAL(triggered()), this, SLOT(killProcess()));
+    connect(sub1, SIGNAL(triggered()), this, SLOT(killProcess()));
     connect(sub2, SIGNAL(triggered()), this, SLOT(restartProcess()));
     connect(sub3, SIGNAL(triggered()), this, SLOT(changeParameterDialogShow()));
-    //connect(sub4, SIGNAL(triggered()), this, SLOT(viewLog()));
+    connect(sub4, SIGNAL(triggered()), this, SLOT(viewLog()));
 
     ui->datarecieverB->setStyleSheet("background-color: rgb(255, 0, 0);color: rgb(255, 255, 255);");
     ui->filterpickerB->setStyleSheet("background-color: rgb(255, 0, 0);color: rgb(255, 255, 255);");
@@ -109,7 +103,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    procscheckthred->terminate();
+    //procscheckthred->terminate();
+    //eventcheckthred->terminate();
     delete ui;
 }
 
@@ -128,8 +123,6 @@ void MainWindow::openDB()
 
 void MainWindow::recvEWModuleList(EWMODULEINFO ewmoduleinfo)
 {
-    //qDebug() << ewmoduleinfo.prName;
-
     ui->datarecieverB->setStyleSheet("background-color: rgb(255, 0, 0);color: rgb(255, 255, 255);");
     ui->filterpickerB->setStyleSheet("background-color: rgb(255, 0, 0);color: rgb(255, 255, 255);");
     ui->binderB->setStyleSheet("background-color: rgb(255, 0, 0);color: rgb(255, 255, 255);");
@@ -139,8 +132,8 @@ void MainWindow::recvEWModuleList(EWMODULEINFO ewmoduleinfo)
     {
         if(ewmoduleinfo.prName[i].startsWith("tankplayer") && ewmoduleinfo.status[i].startsWith("Alive"))
             ui->datarecieverB->setStyleSheet("background-color: rgb(170, 255, 127);");
-        else if(ewmoduleinfo.prName[i].startsWith("slink2ew") && ewmoduleinfo.status[i].startsWith("Alive"))
-            ui->datarecieverB->setStyleSheet("background-color: rgb(170, 255, 127);");
+        //else if(ewmoduleinfo.prName[i].startsWith("slink2ew") && ewmoduleinfo.status[i].startsWith("Alive"))
+            //ui->datarecieverB->setStyleSheet("background-color: rgb(170, 255, 127);");
         else if(ewmoduleinfo.prName[i].startsWith("pick_FP") && ewmoduleinfo.status[i].startsWith("Alive"))
             ui->filterpickerB->setStyleSheet("background-color: rgb(170, 255, 127);");
         else if(ewmoduleinfo.prName[i].startsWith("binder_ew") && ewmoduleinfo.status[i].startsWith("Alive"))
@@ -175,7 +168,7 @@ void MainWindow::stopEWprocess()
                     QString::null, 1, 1 ) )
         {
             QString cmd = cfg.BINDIR + "/pau";
-            system(cmd.toLatin1().data());
+            //system(cmd.toLatin1().data());
         }
     }
     else
@@ -188,7 +181,7 @@ void MainWindow::stopEWprocess()
                     QString::null, 1, 1 ) )
         {
             QString cmd = cfg.BINDIR + "/pau";
-            system(cmd.toLatin1().data());
+            //system(cmd.toLatin1().data());
         }
     }
 }
@@ -309,19 +302,17 @@ void MainWindow::changeParameterDialogShow()
 {
     if(parameterFileName == "filterpicker")
     {
-        filterpicker = new FilterPicker( this );
+        filterpicker = new FilterPicker(cfg, korean, this);
         filterpicker->show();
     }
     else if(parameterFileName == "binder")
     {
-
-        binder->setup();
+        binder = new Binder(cfg, korean, this);
         binder->show();
     }
     else if(parameterFileName == "nlloc1")
     {
-        nlloc1 = new NLLoc( "0", "0", "1", this );
-        nlloc1->setup();
+        nlloc1 = new NLLoc(cfg, korean, "0", "0", "1", this);
         nlloc1->show();
     }
     else if(parameterFileName == "tankplayer")
@@ -334,6 +325,7 @@ void MainWindow::changeParameterDialogShow()
 
 void MainWindow::viewLog()
 {
+    /*
     if(parameterFileName == "filterpicker")
     {
         viewlogFP->setup("pick_FP");
@@ -354,6 +346,7 @@ void MainWindow::viewLog()
         viewlogTK->setup("tankplayer");
         viewlogTK->show();
     }
+    */
 }
 
 void MainWindow::setPosition()
@@ -366,25 +359,26 @@ void MainWindow::setPosition()
 /* Action Menu Slots */
 void MainWindow::actionLoadStaFileClicked()
 {
+    selectstafile = new SelectStaFile(cfg, korean, false, this);
     selectstafile->show();
 }
 
 void MainWindow::actionConfigStaInfoClicked()
 {
-    configstation = new ConfigStation(this);
+    configstation = new ConfigStation(cfg, korean, this);
     configstation->show();
 }
 
 void MainWindow::actionImportDataClicked()
 {
-    importdata->setup();
+    importdata = new ImportData(cfg, korean, this);
     importdata->show();
 }
 
 void MainWindow::actionDataMonitorClicked()
 {
     QDate date = QDate::currentDate();
-    datamonitor->setup();
+    datamonitor = new DataMonitor(cfg, korean, this);
     datamonitor->clickCalendar(date);
     datamonitor->changePage(date.year(), date.month());
     datamonitor->show();
@@ -414,17 +408,6 @@ void MainWindow::actionEnglishClicked()
     ui->actionKorean->setText("Korean");
     ui->actionExit->setText("Exit");
 
-    importdata->setLanguageEn();
-    datamonitor->setLanguageEn();
-    /*
-    binder->setLanguageEn();
-    selectstafile->setLanguageEn();
-
-    importdata->korean = false;
-    datamonitor->korean = false;
-    binder->korean = false;
-    selectstafile->korean = false;
-    */
     korean = false;
 }
 
@@ -452,17 +435,6 @@ void MainWindow::actionKoreanClicked()
     ui->actionKorean->setText(codec->toUnicode("한국어"));
     ui->actionExit->setText(codec->toUnicode("프로그램 종료"));
 
-    importdata->setLanguageKo();
-    datamonitor->setLanguageKo();
-    /*
-    binder->setLanguageKo();
-    selectstafile->setLanguageKo();
-
-    importdata->korean = true;
-    datamonitor->korean = true;
-    binder->korean = true;
-    selectstafile->korean = true;
-    */
     korean = true;
 }
 
@@ -478,13 +450,13 @@ void MainWindow::actionExitClicked()
                     QString::null, 1, 1 ) )
         {
             QString cmd = cfg.BINDIR + "/pau";
-            system(cmd.toLatin1().data());
+            //system(cmd.toLatin1().data());
             cmd = "kill `ps -ef | grep eventviewer | grep -v grep | awk '{print $2}'`";
             system(cmd.toLatin1().data());
             cmd = "kill `ps -ef | grep swarm | grep -v grep | grep -v Swarm | awk '{print $2}'`";
-            system(cmd.toLatin1().data());
+            //system(cmd.toLatin1().data());
             cmd = "kill `ps -ef | grep swarm | grep -v grep |awk '{print $2}'`";
-            system(cmd.toLatin1().data());
+            //system(cmd.toLatin1().data());
             cmd = "kill `ps -ef | grep SeisGram | grep -v grep | awk '{print $2}'";
             system(cmd.toLatin1().data());
 
@@ -503,13 +475,13 @@ void MainWindow::actionExitClicked()
                     QString::null, 1, 1 ) )
         {
             QString cmd = cfg.BINDIR + "/pau";
-            system(cmd.toLatin1().data());
+            //system(cmd.toLatin1().data());
             cmd = "kill `ps -ef | grep eventviewer | grep -v grep | awk '{print $2}'`";
             system(cmd.toLatin1().data());
             cmd = "kill `ps -ef | grep swarm | grep -v grep | grep -v Swarm | awk '{print $2}'`";
-            system(cmd.toLatin1().data());
+            //system(cmd.toLatin1().data());
             cmd = "kill `ps -ef | grep swarm | grep -v grep |awk '{print $2}'`";
-            system(cmd.toLatin1().data());
+            //system(cmd.toLatin1().data());
             cmd = "kill `ps -ef | grep SeisGram | grep -v grep | awk '{print $2}'";
             system(cmd.toLatin1().data());
 
@@ -523,7 +495,7 @@ void MainWindow::actionExitClicked()
 /* Main menu slots */
 void MainWindow::stainfoViewerShow()
 {
-    viewstation = new ViewStation(this);
+    viewstation = new ViewStation(cfg, korean, this);
     viewstation->show();
 }
 
@@ -568,12 +540,12 @@ void MainWindow::runSwarm()
 
 void MainWindow::eventViewerShow()
 {
-    eventmon = new EventMon( this );
+    eventmon = new EventMon(cfg, korean, this);
     eventmon->show();
 }
 
 void MainWindow::dataExtractorShow()
 {
-    dataextractor = new DataExtractor( korean, this );
+    dataextractor = new DataExtractor(cfg, korean, this);
     dataextractor->show();
 }
