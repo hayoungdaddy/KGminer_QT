@@ -249,7 +249,7 @@ void FileGenerator::ew2mseed_gen(CFG c, STAFILE stafile)
     }
 }
 
-// event == true : c.EVENTDIR + "/TMP/TMP/NLLOC1/" is basic dir
+// event == true : c.EVENTDIR + "/TMP/TMP/NLLOC/" is basic dir
 // event == false : c.PARAMSDIR + "/NLLOC/1~3/" is basic dir
 // nlloc_gen function is making files for SVM mode only
 void FileGenerator::nlloc_gen(bool event, CFG c, STAFILE stafile, QString avgLat, QString avgLon)
@@ -257,7 +257,7 @@ void FileGenerator::nlloc_gen(bool event, CFG c, STAFILE stafile, QString avgLat
     QString mainDir;
 
     if(event)
-        mainDir = c.EVENTDIR + "/TMP/TMP/NLLOC1";
+        mainDir = c.EVENTDIR + "/TMP/TMP/NLLOC";
     else
         mainDir = c.PARAMSDIR + "/NLLOC";
 
@@ -270,9 +270,9 @@ void FileGenerator::nlloc_gen(bool event, CFG c, STAFILE stafile, QString avgLat
     if(event)
     {
         gen_type(mainDir + "/type");
-        gen_gridP(mainDir + "/grid_p.in", stafile, avgLat, avgLon, fst, lst, scnCount, c.EVENTDIR + "/TMP/TMP/NLLOC1");
+        gen_gridP(mainDir + "/grid_p.in", stafile, avgLat, avgLon, fst, lst, scnCount, c.EVENTDIR + "/TMP/TMP/NLLOC");
         gen_nllocIn(mainDir + "/nlloc.in", avgLat, avgLon, fst, lst, c.EVENTDIR + "/TMP/TMP/picklist" ,
-                    c.EVENTDIR + "/TMP/TMP/NLLOC1", c.EVENTDIR + "/TMP/TMP/LOC/NLLOC1");
+                    c.EVENTDIR + "/TMP/TMP/NLLOC", c.EVENTDIR + "/TMP/TMP/LOC/NLLOC");
     }
     else
     {
@@ -280,10 +280,10 @@ void FileGenerator::nlloc_gen(bool event, CFG c, STAFILE stafile, QString avgLat
         {
             gen_type(mainDir + "/" + QString::number(j) + "/type");
             gen_gridP(mainDir + "/" + QString::number(j) + "/grid_p.in", stafile, avgLat, avgLon, fst, lst, scnCount,
-                      c.EVENTDIR + "/EVID/ORID/NLLOC" + QString::number(j));
+                      c.EVENTDIR + "/EVID/ORID/NLLOC");
             gen_nllocIn(mainDir + "/" + QString::number(j) + "/nlloc.in", avgLat, avgLon, fst, lst,
-                        c.EVENTDIR + "/EVID/ORID/picklist" , c.EVENTDIR + "/EVID/ORID/NLLOC" + QString::number(j),
-                        c.EVENTDIR + "/EVID/ORID/LOC/NLLOC" + QString::number(j));
+                        c.EVENTDIR + "/EVID/ORID/picklist" , c.EVENTDIR + "/EVID/ORID/NLLOC",
+                        c.EVENTDIR + "/EVID/ORID/LOC/NLLOC");
         }
     }
 }

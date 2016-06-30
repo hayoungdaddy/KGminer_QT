@@ -69,7 +69,7 @@ void NLLoc::setup()
     if(EVID == "0")
         MAINDIR = c.PARAMSDIR + "/NLLOC/" + NUMBER;
     else
-        MAINDIR = c.EVENTDIR + "/" + EVID + "/" + ORID + "/NLLOC" + NUMBER; // NUMBER is 1
+        MAINDIR = c.EVENTDIR + "/" + EVID + "/" + ORID + "/NLLOC";
 
     // find NLLoc type
     QFile file;
@@ -211,7 +211,7 @@ void NLLoc::genButtonClicked()
     if(EVID == "0")
         MAINDIR = c.PARAMSDIR + "/NLLOC/" + NUMBER;
     else
-        MAINDIR = c.EVENTDIR + "/" + EVID + "/" + ORID + "/NLLOC" + NUMBER; // NUMBER is 1
+        MAINDIR = c.EVENTDIR + "/" + EVID + "/" + ORID + "/NLLOC";
 
     if(TYPE == "SVM")
     {
@@ -242,7 +242,7 @@ void NLLoc::genButtonClicked()
                       ui->sspLE->text() << "  0.0" << "\n";
 
             if(EVID == "0")
-                stream << "VGOUT " + c.EVENTDIR + "/EVID/ORID/NLLOC" + NUMBER + "/model/layer" << "\n";
+                stream << "VGOUT " + c.EVENTDIR + "/EVID/ORID/NLLOC/model/layer" << "\n";
             else
                 stream << "VGOUT " + MAINDIR + "/model/layer" << "\n";
 
@@ -255,8 +255,8 @@ void NLLoc::genButtonClicked()
 
             if(EVID == "0")
             {
-                stream << "GTFILES  " + c.EVENTDIR + "/EVID/ORID/NLLOC" + NUMBER + "/model/layer " + c.EVENTDIR +
-                          "/EVID/ORID/NLLOC" + NUMBER + "/time/layer P" << "\n";
+                stream << "GTFILES  " + c.EVENTDIR + "/EVID/ORID/NLLOC/model/layer " + c.EVENTDIR +
+                          "/EVID/ORID/NLLOC/time/layer P" << "\n";
             }
             else
             {
@@ -305,13 +305,13 @@ void NLLoc::genButtonClicked()
             stream << "LOCSTAWT 0 -1.0" << "\n";
             if(EVID == "0")
             {
-                stream << "LOCFILES " << c.EVENTDIR << "/EVID/ORID/picklist HYPOINVERSE_Y2000_ARC " << c.EVENTDIR << "/EVID/ORID/NLLOC" + NUMBER + "/time/layer "
-                      << c.EVENTDIR << "/EVID/ORID/LOC/NLLOC" + NUMBER << "\n";
+                stream << "LOCFILES " << c.EVENTDIR << "/EVID/ORID/picklist HYPOINVERSE_Y2000_ARC " << c.EVENTDIR << "/EVID/ORID/NLLOC/time/layer "
+                      << c.EVENTDIR << "/EVID/ORID/LOC/NLLOC" << "\n";
             }
             else
             {
                 stream << "LOCFILES " << c.EVENTDIR << "/" << EVID << "/" << ORID << "/picklist HYPOINVERSE_Y2000_ARC " << MAINDIR << "/time/layer "
-                      << c.EVENTDIR << "/" << EVID << "/" << ORID << "/LOC/NLLOC1" << "\n";
+                      << c.EVENTDIR << "/" << EVID << "/" << ORID << "/LOC/NLLOC" << "\n";
             }
             stream << "LOCHYPOUT SAVE_HYPOINVERSE_Y2000_ARC" << "\n";
 
@@ -344,7 +344,7 @@ void NLLoc::genButtonClicked()
                           ui->sspLE->text() << "  0.0" << "\n";
 
                 if(EVID == "0")
-                    stream << "VGOUT " + c.EVENTDIR + "/EVID/ORID/NLLOC" + NUMBER + "/" + VEL + "/model/layer" << "\n";
+                    stream << "VGOUT " + c.EVENTDIR + "/EVID/ORID/NLLOC/" + VEL + "/model/layer" << "\n";
                 else
                     stream << "VGOUT " + MAINDIR + "/" + VEL + "/model/layer" << "\n";
 
@@ -357,8 +357,8 @@ void NLLoc::genButtonClicked()
 
                 if(EVID == "0")
                 {
-                    stream << "GTFILES  " + c.EVENTDIR + "/EVID/ORID/NLLOC" + NUMBER + "/" + VEL + "/model/layer " + c.EVENTDIR +
-                              "/EVID/ORID/NLLOC" + NUMBER + "/" + VEL + "/time/layer P" << "\n";
+                    stream << "GTFILES  " + c.EVENTDIR + "/EVID/ORID/NLLOC/" + VEL + "/model/layer " + c.EVENTDIR +
+                              "/EVID/ORID/NLLOC/" + VEL + "/time/layer P" << "\n";
                 }
                 else
                 {
@@ -407,13 +407,13 @@ void NLLoc::genButtonClicked()
 
                 if(EVID == "0")
                 {
-                    stream << "LOCFILES " + c.EVENTDIR + "/EVID/ORID/picklist HYPOINVERSE_Y2000_ARC " + c.EVENTDIR + "/EVID/ORID/NLLOC" + NUMBER +
-                              "/" + VEL + "/time/layer " + c.EVENTDIR + "/EVID/ORID/LOC/NLLOC" + NUMBER + "_" + VEL << "\n";
+                    stream << "LOCFILES " + c.EVENTDIR + "/EVID/ORID/picklist HYPOINVERSE_Y2000_ARC " + c.EVENTDIR + "/EVID/ORID/NLLOC/"
+                              + VEL + "/time/layer " + c.EVENTDIR + "/EVID/ORID/LOC/NLLOC_" + VEL << "\n";
                 }
                 else
                 {
                     stream << "LOCFILES " + c.EVENTDIR + "/" + EVID + "/" + ORID + "/picklist HYPOINVERSE_Y2000_ARC " + MAINDIR + "/" + VEL +
-                           "/time/layer " + c.EVENTDIR + "/" + EVID + "/" + ORID + "/LOC/NLLOC1_" + VEL << "\n";
+                           "/time/layer " + c.EVENTDIR + "/" + EVID + "/" + ORID + "/LOC/NLLOC_" + VEL << "\n";
                 }
                 stream << "LOCHYPOUT SAVE_HYPOINVERSE_Y2000_ARC" << "\n";
 

@@ -28,10 +28,44 @@ static void changeEVIDORID(QString dir, QString fn, int evid, int orid)
     }
 }
 
+static void rechangeEVIDORID(QString dir, QString fn, int evid, int orid)
+{
+    QByteArray fileData;
+    QFile file;
+    file.setFileName(dir + "/" + fn);
+
+    if(file.open(QIODevice::ReadWrite))
+    {
+        fileData = file.readAll();
+
+        QString text = fileData.data();
+
+        text.replace(QString::number(orid) + "/NLLOC", "NEWORIGIN/NLLOC");
+        text.replace(QString::number(orid) + "/picklist", "NEWORIGIN/picklist");
+        text.replace(QString::number(orid) + "/LOC", "NEWORIGIN/LOC");
+
+        file.seek(0);
+        file.write(text.toUtf8()); // write the new text back to the file
+
+        file.close(); // close the file handle.
+    }
+}
+
 static void runNLLoc(QString eventDir, int evid, int orid, QString paramsDir, QString type, float minVel, float maxVel)
 {
-    QString resultDir = eventDir + "/" + QString::number(evid) + "/" + QString::number(orid) + "/LOC";
-    QString logDir = eventDir + "/" + QString::number(evid) + "/" + QString::number(orid) + "/NLLOC";
+    QString resultDir, logDir, cmd;
+
+    if(paramsDir.startsWith("NEWORIGIN"))
+    {
+        resultDir = eventDir + "/" + QString::number(evid) + "/NEWORIGIN/LOC";
+        logDir = eventDir + "/" + QString::number(evid) + "/NEWORIGIN/NLLOC";
+    }
+    else
+    {
+        resultDir = eventDir + "/" + QString::number(evid) + "/" + QString::number(orid) + "/LOC";
+        logDir = eventDir + "/" + QString::number(evid) + "/" + QString::number(orid) + "/NLLOC";
+    }
+
     QDir dir;
     dir.setPath(resultDir);
     if(!dir.exists())
@@ -40,16 +74,20 @@ static void runNLLoc(QString eventDir, int evid, int orid, QString paramsDir, QS
     if(!dir.exists())
         dir.mkpath(".");
 
-    QString cmd;
-    cmd = "cp -R " + paramsDir + "/* " + logDir;
-    system(cmd.toLatin1().data());
+    if(!paramsDir.startsWith("NEWORIGIN"))
+    {
+        cmd = "cp -R " + paramsDir + "/* " + logDir;
+        system(cmd.toLatin1().data());
+    }
 
     if(type.startsWith("SVM"))
     {
-        changeEVIDORID(logDir, "grid_p.in", evid, orid);
-        changeEVIDORID(logDir, "nlloc.in", evid, orid);
+        if(!paramsDir.startsWith("NEWORIGIN"))
+        {
+            changeEVIDORID(logDir, "grid_p.in", evid, orid);
+            changeEVIDORID(logDir, "nlloc.in", evid, orid);
+        }
 
-        QString cmd;
         cmd = "Vel2Grid " + logDir + "/grid_p.in >> " + logDir + "/Vel2Grid.log";
         system(cmd.toLatin1().data());
         cmd = "Grid2Time " + logDir + "/grid_p.in >> " + logDir + "/Grid2Time.log";
@@ -63,8 +101,11 @@ static void runNLLoc(QString eventDir, int evid, int orid, QString paramsDir, QS
     {
         for(float i=minVel;i<=maxVel;i=i+0.1)
         {
-            changeEVIDORID(logDir + "/" + QString::number(i, 'f', 1), "grid_p.in", evid, orid);
-            changeEVIDORID(logDir + "/" + QString::number(i, 'f', 1), "nlloc.in", evid, orid);
+            if(!paramsDir.startsWith("NEWORIGIN"))
+            {
+                changeEVIDORID(logDir + "/" + QString::number(i, 'f', 1), "grid_p.in", evid, orid);
+                changeEVIDORID(logDir + "/" + QString::number(i, 'f', 1), "nlloc.in", evid, orid);
+            }
 
             QString cmd;
             cmd = "Vel2Grid " + logDir + "/" + QString::number(i, 'f', 1) + "/grid_p.in >> " + logDir + "/" + QString::number(i, 'f', 1) + "/Vel2Grid.log";

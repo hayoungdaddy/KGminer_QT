@@ -526,6 +526,9 @@
      <height>411</height>
     </rect>
    </property>
+   <property name="selectionMode">
+    <enum>QAbstractItemView::SingleSelection</enum>
+   </property>
    <column>
     <property name="text">
      <string>EVID</string>
@@ -560,6 +563,9 @@
      <width>721</width>
      <height>411</height>
     </rect>
+   </property>
+   <property name="selectionMode">
+    <enum>QAbstractItemView::SingleSelection</enum>
    </property>
    <column>
     <property name="text">
@@ -596,16 +602,6 @@
      <string>WAVEFORM</string>
     </property>
    </column>
-   <column>
-    <property name="text">
-     <string>Summary</string>
-    </property>
-   </column>
-   <column>
-    <property name="text">
-     <string>Logs</string>
-    </property>
-   </column>
   </widget>
   <widget class="QTableWidget" name="assocTable">
    <property name="geometry">
@@ -615,6 +611,9 @@
      <width>451</width>
      <height>411</height>
     </rect>
+   </property>
+   <property name="selectionMode">
+    <enum>QAbstractItemView::SingleSelection</enum>
    </property>
    <attribute name="horizontalHeaderDefaultSectionSize">
     <number>85</number>

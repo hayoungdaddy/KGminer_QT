@@ -1,7 +1,7 @@
 #include "makeorigin.h"
 #include "ui_makeorigin.h"
 
-MakeOrigin::MakeOrigin(CFG cfg, bool _korean, QString evid, QString orid, QWidget *parent) :
+MakeOrigin::MakeOrigin(CFG cfg, bool _korean, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::MakeOrigin)
 {
@@ -15,18 +15,17 @@ MakeOrigin::MakeOrigin(CFG cfg, bool _korean, QString evid, QString orid, QWidge
         setLanguageKo();
     else
         setLanguageEn();
+
+    this->model = new QSqlQueryModel();
 }
 
 MakeOrigin::~MakeOrigin()
 {
     delete ui;
 }
-
-void MakeOrigin::setup(QString evid, QString orid)
+void MakeOrigin::setup(QString evid, QString firstorid)
 {
     ui->evidLE->setText(evid);
-    ui->oridLE->setText(orid);
-
     ui->latLE->clear();
     ui->lonLE->clear();
     ui->depthLE->clear();
@@ -34,7 +33,14 @@ void MakeOrigin::setup(QString evid, QString orid)
     ui->alLE->clear();
 
     EVID = evid;
-    ORID = orid;
+    FIRSTORID = firstorid;
+
+    ui->editButton->setEnabled(false);
+    ui->nllocButton->setEnabled(false);
+    ui->inputDBButton->setEnabled(false);
+    ui->mapButton->setEnabled(false);
+
+    ui->progressBar->setValue(0);
 }
 
 void MakeOrigin::setLanguageEn()
@@ -45,7 +51,8 @@ void MakeOrigin::setLanguageEn()
     ui->saveButton->setText("Save Picklists");
     ui->editButton->setText("Edit NLLoc params");
     ui->nllocButton->setText("Run NLLoc");
-    ui->inputDBButton->setText("Input Database");
+    ui->mapButton->setText("Map");
+    ui->inputDBButton->setText("Save");
     ui->quitButton->setText("Cancel");
 }
 
@@ -57,10 +64,12 @@ void MakeOrigin::setLanguageKo()
     ui->saveButton->setText(codec->toUnicode("Pick 리스트 저장"));
     ui->editButton->setText(codec->toUnicode("NLLoc 파라메터 수정"));
     ui->nllocButton->setText(codec->toUnicode("NLLoc 실행"));
-    ui->inputDBButton->setText(codec->toUnicode("Database 저장"));
+    ui->mapButton->setText(codec->toUnicode("지도"));
+    ui->inputDBButton->setText(codec->toUnicode("저장"));
     ui->quitButton->setText(codec->toUnicode("취소"));
 }
 
+/*
 void MakeOrigin::closeEvent(QCloseEvent *event)
 {
     QString cmd = "pkill geotool";
@@ -69,6 +78,7 @@ void MakeOrigin::closeEvent(QCloseEvent *event)
     cmd = "rm -rf " + c.EVENTDIR + "/" + EVID + "/" + ORID;
     system(cmd.toLatin1().data());
 }
+*/
 
 void MakeOrigin::on_quitButton_clicked()
 {
@@ -82,8 +92,9 @@ void MakeOrigin::on_quitButton_clicked()
         QString cmd = "pkill geotool";
         system(cmd.toLatin1().data());
 
-        cmd = "rm -rf " + c.EVENTDIR + "/" + EVID + "/" + ORID;
-        system(cmd.toLatin1().data());
+        QDir dir;
+        dir.setPath(c.EVENTDIR + "/" + EVID + "/NEWORIGIN");
+        dir.removeRecursively();
 
         accept();
     }
@@ -93,34 +104,50 @@ void MakeOrigin::on_quitButton_clicked()
 
 void MakeOrigin::on_showButton_clicked()
 {
-    QString cmd = c.SCRIPTDIR + "/viewWave.sh " + EVID + " " + ORID + " >> /dev/null 2>&1 &";
+    QString cmd = c.SCRIPTDIR + "/viewWave.sh " + EVID + " NEWORIGIN >> /dev/null 2>&1 &";
     system(cmd.toLatin1().data());
 }
 
 void MakeOrigin::on_saveButton_clicked()
 {
-    QString cmd = "cp " + c.EVENTDIR + "/" + EVID + "/" + ORID + "/data/css/css.arrival " + c.EVENTDIR + "/" + EVID + "/" + ORID + "/data/css/.css.arrival";
+    QString cmd = "cp " + c.EVENTDIR + "/" + EVID + "/NEWORIGIN/data/css/css.arrival " + c.EVENTDIR + "/" + EVID + "/NEWORIGIN/data/css/.css.arrival";
     system(cmd.toLatin1().data());
 
-    cmd = c.SCRIPTDIR + "/makePickforNLLoc.sh " + EVID + " " + ORID;
+    cmd = c.SCRIPTDIR + "/cssarrivalTopicklist.sh " + EVID + " NEWORIGIN";
     system(cmd.toLatin1().data());
 
     QMessageBox msgBox;
-    msgBox.setText("Saved picklists.");
+    if(!korean)
+        msgBox.setText("Saved picklists.");
+    else
+        msgBox.setText(codec->toUnicode("Pick 리스트 저장 완료"));
     msgBox.exec();
+
+    ui->editButton->setEnabled(true);
+    ui->nllocButton->setEnabled(true);
 }
 
 void MakeOrigin::on_editButton_clicked()
 {
-    NLLoc *nlloc = new NLLoc(c, korean, EVID, ORID, "1", this);
-    nlloc->show();
+    NLLoc *nlloc = new NLLoc(c, korean, EVID, "NEWORIGIN", "1", this);
+    nlloc->show();  
 }
 
 void MakeOrigin::on_nllocButton_clicked()
 {
-    ui->nllocButton->setEnabled(false);
+    // 1. change ID to EVID, ORID string
+    // 2. run NLLOC
+    // 3. change realID
+    ui->progressBar->setValue(0);
+
+    QDir d;
+    d.setPath(c.EVENTDIR + "/" + EVID + "/NEWORIGIN/LOC");
+    if(d.exists())
+        d.removeRecursively();
+    d.mkpath(".");
+
     QFile file;
-    file.setFileName(c.EVENTDIR + "/" + EVID + "/" + ORID + "/NLLOC/type");
+    file.setFileName(c.EVENTDIR + "/" + EVID + "/NEWORIGIN/NLLOC/type");
     QString minv,maxv;
     if(file.open( QIODevice::ReadOnly ))
     {
@@ -139,29 +166,33 @@ void MakeOrigin::on_nllocButton_clicked()
         file.close();
     }
 
-    QString cmd = "cp " + c.EVENTDIR + "/" + EVID + "/" + ORID + "/data/css/css.arrival " + c.EVENTDIR + "/" + EVID + "/" + ORID + "/data/css/.css.arrival";
-    system(cmd.toLatin1().data());
-
-    cmd = c.SCRIPTDIR + "/makePickforNLLoc.sh " + EVID + " " + ORID;
-    system(cmd.toLatin1().data());
-
-    if(TYPE == "SVM")
+    if(TYPE.startsWith("SVM"))
     {
-        cmd = c.SCRIPTDIR + "/runNLLocSVM.sh " + EVID + " " + ORID + " 0";
+        rechangeEVIDORID(c.EVENTDIR + "/" + EVID + "/NEWORIGIN/NLLOC", "grid_p.in", EVID.toInt(), FIRSTORID.toInt());
+        rechangeEVIDORID(c.EVENTDIR + "/" + EVID + "/NEWORIGIN/NLLOC", "nlloc.in", EVID.toInt(), FIRSTORID.toInt());
     }
-    else if(TYPE == "MVM")
+    else if(TYPE.startsWith("MVM"))
     {
-        cmd = c.SCRIPTDIR + "/runNLLocMVM.sh " + EVID + " " + ORID + " 0 " + minv + " " + maxv;
+        float minVel = minv.toFloat();
+        float maxVel = maxv.toFloat();
+
+        for(float i=minVel;i<=maxVel;i=i+0.1)
+        {
+            rechangeEVIDORID(c.EVENTDIR + "/" + EVID + "/NEWORIGIN/NLLOC/" + QString::number(i, 'f', 1), "grid_p.in", EVID.toInt(), FIRSTORID.toInt());
+            rechangeEVIDORID(c.EVENTDIR + "/" + EVID + "/NEWORIGIN/NLLOC/" + QString::number(i, 'f', 1), "nlloc.in", EVID.toInt(), FIRSTORID.toInt());
+        }
     }
-    system(cmd.toLatin1().data());
 
-    QMessageBox msgBox;
-    msgBox.setText("Finished NLLoc.");
-    msgBox.exec();
+    ui->progressBar->setValue(20);
 
-    ui->nllocButton->setEnabled(true);
+    if(TYPE.startsWith("SVM"))
+        runNLLoc(c.EVENTDIR, EVID.toInt(), 0, "NEWORIGIN", TYPE, 0, 0);
+    else if(TYPE.startsWith("MVM"))
+        runNLLoc(c.EVENTDIR, EVID.toInt(), 0, "NEWORIGIN", TYPE, minv.toFloat(), maxv.toFloat());
 
-    file.setFileName(c.EVENTDIR + "/" + EVID + "/" + ORID + "/LOC/NLLOC.origin");
+    ui->progressBar->setValue(80);
+
+    file.setFileName(c.EVENTDIR + "/" + EVID + "/NEWORIGIN/LOC/origin");
 
     if( file.open( QIODevice::ReadOnly ) )
     {
@@ -194,11 +225,53 @@ void MakeOrigin::on_nllocButton_clicked()
         }
         file.close();
     }
+    ui->progressBar->setValue(100);
+
+    QMessageBox msgBox;
+    if(!korean)
+        msgBox.setText("Finished NLLoc.");
+    else
+        msgBox.setText(codec->toUnicode("NLLOC 실행 완료."));
+    msgBox.exec();
+
+    ui->mapButton->setEnabled(true);
     ui->inputDBButton->setEnabled(true);
+
 }
 
 void MakeOrigin::on_inputDBButton_clicked()
 {
+    /* make picklist */
+    file.setFileName(rootDir + "/picklist");
+    if(file.open(QIODevice::WriteOnly))
+    {
+        QTextStream stream( &file ) ;
+        for(int i=0;i<pickinfo.staName.count();i++)
+        {
+            // G01   -1 HGZ  P?0201512010451 4501  --> picklist
+            if(pickinfo.staName[i].count() == 3)
+                stream << pickinfo.staName[i] << "  ";
+            else if(pickinfo.staName[i].count() == 4)
+                stream << pickinfo.staName[i] << " ";
+            else if(pickinfo.staName[i].count() == 5)
+                stream << pickinfo.staName[i];
+
+            stream << " " << pickinfo.locName[i] << " " << pickinfo.chanName[i] << "  ";
+            stream << pickinfo.phase[i] << "?0" << pickinfo.dateTime[i] << " " << pickinfo.sec[i] << pickinfo.msec[i] << "\n";
+
+            /* insert onto assoc */
+            insertQuery = "INSERT INTO assoc (arid, orid, sta, chan, time, phase, p_algorithm, lddate) VALUES ("
+                    + QString::number(arid) + ", " + QString::number(orid) + ", '" + pickinfo.staName[i] + "', '"
+                    + pickinfo.chanName[i] + "', '" + pickinfo.dateTime[i] + pickinfo.sec[i] + "." + pickinfo.msec[i]
+                    + "', '" + pickinfo.phase[i] + "', 'FP', '" + today.toString("yyyyMMdd") + "')";
+
+            model->setQuery(insertQuery);
+            arid++;
+        }
+        file.close();
+    }
+
+    /*
     QString cmd;
     cmd = c.SCRIPTDIR + "/inputDatatoDB.sh " + EVID + " " + ORID + " Manual " + TYPE;
     qDebug() << cmd;
@@ -214,4 +287,20 @@ void MakeOrigin::on_inputDBButton_clicked()
     emit resetTable();
 
     accept();
+    */
+}
+
+void MakeOrigin::on_mapButton_clicked()
+{
+    QString cmd;
+    cmd = "rm /usr/local/tomcat/webapps/eventviewer/origin.info"; system(cmd.toLatin1().data());
+    cmd = "grep -v File " + c.EVENTDIR + "/" + EVID + "/sta.info | grep -v Desc > /usr/local/tomcat/webapps/eventviewer/sta.info"; system(cmd.toLatin1().data());
+
+    QString tot = "Not_yet_decided. " + ui->latLE->text() + " " + ui->lonLE->text() + " " + ui->depthLE->text() + " " +
+            ui->timeLE->text() + " " + ui->alLE->text() + " ";
+
+    cmd = "echo \"" + EVID + " " + tot + "\" >> /usr/local/tomcat/webapps/eventviewer/origin.info"; system(cmd.toLatin1().data());
+
+    cmd = "firefox 127.0.0.1:8080/eventviewer &";
+    system(cmd.toLatin1().data());
 }

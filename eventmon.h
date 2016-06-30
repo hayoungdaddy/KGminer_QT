@@ -2,9 +2,9 @@
 #define EVENTMON_H
 
 #include <QDialog>
+#include <QSql>
 #include <QSqlQuery>
 #include <QSqlQueryModel>
-#include <QSqlDatabase>>
 #include <QSqlRecord>
 #include <QSqlError>
 #include <QTimer>
@@ -12,6 +12,7 @@
 
 #include "common.h"
 #include "makeorigin.h"
+#include "locator.h"
 
 namespace Ui {
     class EventMon;

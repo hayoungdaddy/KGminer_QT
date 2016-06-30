@@ -16,6 +16,9 @@ EventMon::EventMon(CFG cfg, bool _korean, QWidget *parent) :
     else
         setLanguageEn();
 
+    makeorigin = new MakeOrigin(c, korean, this);
+    makeorigin->hide();
+
     this->model = new QSqlQueryModel();
 
     setEventTable();
@@ -25,9 +28,6 @@ EventMon::EventMon(CFG cfg, bool _korean, QWidget *parent) :
     orid = model->record(0).value("min(orid)").toString();
     setOriginTable(evid);
     setAssocTable(orid);
-
-    makeorigin = new MakeOrigin(c, korean, "0", "0", this);
-    makeorigin->hide();
 
     /* Process Status Setup */
     resetTableTimer = new QTimer(this);
@@ -47,12 +47,16 @@ EventMon::~EventMon()
 
 void EventMon::setLanguageEn()
 {
-
+    setWindowTitle("Event Lists");
+    ui->makeOrigin->setText("Make a new origin");
+    ui->quitButton->setText("quit");
 }
 
 void EventMon::setLanguageKo()
 {
-
+    setWindowTitle(codec->toUnicode("이벤트 리스트"));
+    ui->makeOrigin->setText(codec->toUnicode("신규 Origin 생성"));
+    ui->quitButton->setText(codec->toUnicode("종료"));
 }
 
 void EventMon::setup()
@@ -122,8 +126,6 @@ void EventMon::setOriginTable(QString evid)
         ui->originTable->setItem(i, 4, new QTableWidgetItem(time));
         ui->originTable->setItem(i, 5, new QTableWidgetItem(l_algorithm));
         ui->originTable->setItem(i, 6, new QTableWidgetItem("Link"));
-        ui->originTable->setItem(i, 7, new QTableWidgetItem("View"));
-        ui->originTable->setItem(i, 8, new QTableWidgetItem("View"));
         ui->originTable->item(i, 0)->setTextAlignment(Qt::AlignCenter);
         ui->originTable->item(i, 1)->setTextAlignment(Qt::AlignCenter);
         ui->originTable->item(i, 2)->setTextAlignment(Qt::AlignCenter);
@@ -131,8 +133,6 @@ void EventMon::setOriginTable(QString evid)
         ui->originTable->item(i, 4)->setTextAlignment(Qt::AlignCenter);
         ui->originTable->item(i, 5)->setTextAlignment(Qt::AlignCenter);
         ui->originTable->item(i, 6)->setTextAlignment(Qt::AlignCenter);
-        ui->originTable->item(i, 7)->setTextAlignment(Qt::AlignCenter);
-        ui->originTable->item(i, 8)->setTextAlignment(Qt::AlignCenter);
     }
 }
 
@@ -206,7 +206,13 @@ void EventMon::clickEventTable(int row, int col)
     }
     else if(col == 4)
     {
-        QString str = "Do you want to delete this event?";
+        QString str;
+
+        if(!korean)
+            str = "Do you want to delete this event?";
+        else
+            str = codec->toUnicode("해당 이벤트를 삭제하시겠습니까?");
+
         if( !QMessageBox::question( this,
                                     "Warning",
                     str,
@@ -214,13 +220,19 @@ void EventMon::clickEventTable(int row, int col)
                     "No",
                     QString::null, 1, 1 ) )
         {
-            QString cmd;
-            cmd = "sqlite3 " + c.DBDIR + "/" + c.DBNAME + " \"delete from event where evid=" + ui->eventTable->item(row, 0)->text() + "\"";
-            system(cmd.toLatin1().data());
-            cmd = "sqlite3 " + c.DBDIR + "/" + c.DBNAME + " \"delete from origin where evid=" + ui->eventTable->item(row, 0)->text() + "\"";
-            system(cmd.toLatin1().data());
-            cmd = "sqlite3 " + c.DBDIR + "/" + c.DBNAME + " \"delete from assoc where orid=" + ui->originTable->item(row, 0)->text() + "\"";
-            system(cmd.toLatin1().data());
+            QSqlQuery qry;
+            model->setQuery("SELECT orid FROM origin where evid = " + ui->eventTable->item(row, 0)->text());
+            for(int i=0;i<model->rowCount();++i)
+            {
+                QString orid = model->record(i).value("orid").toString();
+                qry.prepare( "DELETE FROM assoc WHERE orid = " + orid );
+                qry.exec();
+            }
+            qry.prepare( "DELETE FROM origin WHERE evid = " + ui->eventTable->item(row, 0)->text() );
+            qry.exec();
+            qry.prepare( "DELETE FROM event WHERE evid = " + ui->eventTable->item(row, 0)->text() );
+            qry.exec();
+
             setup();
         }
         else
@@ -240,61 +252,6 @@ void EventMon::clickOriginTable(int row, int col)
         QString cmd = c.SCRIPTDIR + "/viewWave.sh " + evid + " " + orid + " >> /dev/null 2>&1 &";
         system(cmd.toLatin1().data());
     }
-    else if(col == 7)
-    {
-        QTextEdit *edit = new QTextEdit();
-        edit->setWindowTitle(c.EVENTDIR + "/" + evid + "/" + orid + "/LOC/summary");
-        edit->setMinimumWidth(1200); //edit->setMaximumWidth(1000);
-        edit->setMinimumHeight(600); //edit->setMaximumHeight(800);
-        QFile file;
-        file.setFileName(c.EVENTDIR + "/" + evid + "/" + orid + "/LOC/summary");
-        if( file.open( QIODevice::ReadOnly ) )
-        {
-            QTextStream stream(&file);
-            QString line;
-
-            while(!stream.atEnd())
-            {
-                line = stream.readLine();
-                edit->append(line);
-            }
-            file.close();
-        }
-
-        edit->show();
-    }
-    else if(col == 8)
-    {
-        QTextEdit *edit = new QTextEdit();
-        edit->setWindowTitle(c.EVENTDIR + "/" + evid + "/" + orid + "/NLLOC/*.log");
-        edit->setMinimumWidth(1200); //edit->setMaximumWidth(1000);
-        edit->setMinimumHeight(600); //edit->setMaximumHeight(800);
-        QFile file;
-
-        for(int i=0;i<3;i++)
-        {
-            if(i==0) file.setFileName(c.EVENTDIR + "/" + evid + "/" + orid + "/NLLOC/Vel2Grid.log");
-            else if(i==1) file.setFileName(c.EVENTDIR + "/" + evid + "/" + orid + "/NLLOC/Grid2Time.log");
-            else if(i==2) file.setFileName(c.EVENTDIR + "/" + evid + "/" + orid + "/NLLOC/NLLoc.log");
-            if( file.open( QIODevice::ReadOnly ) )
-            {
-                QTextStream stream(&file);
-                QString line;
-
-                edit->append("<< " + file.fileName() + " >>");
-
-                while(!stream.atEnd())
-                {
-                    line = stream.readLine();
-                    edit->append(line);
-                }
-                file.close();
-
-                edit->append("-----------------------------------------------------------------\n");
-            }
-        }
-        edit->show();
-    }
     else
     {
         setAssocTable(orid);
@@ -304,7 +261,10 @@ void EventMon::clickOriginTable(int row, int col)
 
 void EventMon::on_makeOrigin_clicked()
 {
-    QString str = "Do you want to make new origin using evid " + evid + " data?\n\nAre you sure to close all Geotool windows?";
+    QString str;
+
+    if(!korean) str = "Do you want to make a new origin using evid " + evid + " data?\n\nAre you sure to close all Geotool windows?";
+    else str = "evid " + evid + codec->toUnicode("번을 사용하여 신규 origin 정보를 만드시겠습니까?\n\n(경고) 모든 geotool 창이 닫힙니다.");
     if( !QMessageBox::question( this,
                                 "Warning",
                 str,
@@ -315,16 +275,37 @@ void EventMon::on_makeOrigin_clicked()
         QString cmd = "pkill geotool";
         system(cmd.toLatin1().data());
 
-        model->setQuery("SELECT max(orid) FROM origin");
-        int t = model->record(0).value("max(orid)").toInt();
-        t = t+1;
-        QString neworid;
-        neworid = neworid.setNum(t, 10);
+        model->setQuery("SELECT min(orid) FROM origin WHERE evid="+evid);
+        QString firstorid = model->record(0).value("min(orid)").toString();
 
-        cmd = c.SCRIPTDIR + "/makeNewOrigin.sh " + evid + " " + neworid + " >> /dev/null 2>&1 &";
+        QDir dir;
+        dir.setPath(c.EVENTDIR + "/" + evid  + "/NEWORIGIN");
+
+        if(dir.exists())
+            dir.removeRecursively();
+
+        dir.mkpath(".");
+
+        cmd = "cp -R " + c.EVENTDIR + "/" + evid + "/data " + dir.path();
+        system(cmd.toLatin1().data());
+        cmd = "cp -R " + c.EVENTDIR + "/" + evid + "/" + firstorid + "/NLLOC " + dir.path();
         system(cmd.toLatin1().data());
 
-        makeorigin->setup(evid, neworid);
+        QFile file;
+        file.setFileName(dir.path() + "/NLLOC/type");
+        QString type;
+        if(file.open(QIODevice::ReadOnly))
+        {
+            QTextStream stream(&file);
+            type = stream.readLine();
+            file.close();
+        }
+
+        file.setFileName(dir.path() + "/data/css/.css.arrival");
+        if(file.exists())
+            file.remove();
+
+        makeorigin->setup(evid, firstorid);
         makeorigin->show();
     }
     else
