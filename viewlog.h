@@ -14,7 +14,7 @@ class ViewLog : public QDialog
     Q_OBJECT
 
 public:
-    explicit ViewLog(CFG cfg, QWidget *parent = 0);
+    explicit ViewLog(CFG cfg, bool _korean = 0, QWidget *parent = 0);
     ~ViewLog();
 
     bool korean;
@@ -24,7 +24,9 @@ public:
     CFG c;
 
 private:
-    Ui::ViewLog *ViewLog_ui;
+    Ui::ViewLog *ui;
+
+    QTextCodec *codec;
 
 private slots:
     void selectFiles(int);

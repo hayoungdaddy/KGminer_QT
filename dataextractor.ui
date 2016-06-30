@@ -439,6 +439,16 @@
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout_2">
     <item>
+     <widget class="QPushButton" name="mapB">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Map</string>
+      </property>
+     </widget>
+    </item>
+    <item>
      <widget class="QPushButton" name="saveB">
       <property name="enabled">
        <bool>false</bool>
@@ -451,7 +461,7 @@
     <item>
      <widget class="QPushButton" name="quitB">
       <property name="text">
-       <string>Quit</string>
+       <string>Cancel</string>
       </property>
      </widget>
     </item>

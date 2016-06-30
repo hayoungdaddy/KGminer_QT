@@ -17,7 +17,7 @@ DataExtractor::DataExtractor(CFG cfg, bool _korean, QWidget *parent) :
 
     this->model = new QSqlQueryModel();
 
-    QString rootDir = c.EVENTDIR + "/TMP";
+    QString rootDir = c.EVENTDIR + "/NEWEVENT";
     QDir d;
     d.setPath(rootDir);
     if(d.exists())
@@ -30,11 +30,11 @@ DataExtractor::DataExtractor(CFG cfg, bool _korean, QWidget *parent) :
     d.mkpath(".");
     d.setPath(rootDir + "/data/css");
     d.mkpath(".");
-    d.setPath(rootDir + "/TMP/LOC");
+    d.setPath(rootDir + "/NEWORIGIN/LOC");
     d.mkpath(".");
-    d.setPath(rootDir + "/TMP/NLLOC1/model");
+    d.setPath(rootDir + "/NEWORIGIN/NLLOC/model");
     d.mkpath(".");
-    d.setPath(rootDir + "/TMP/NLLOC1/time");
+    d.setPath(rootDir + "/NEWORIGIN/NLLOC/time");
     d.mkpath(".");
 
     selectstafile = new SelectStaFile(cfg, korean, true, this);
@@ -65,6 +65,7 @@ DataExtractor::DataExtractor(CFG cfg, bool _korean, QWidget *parent) :
     connect(ui->runNLLocB, SIGNAL(clicked()), this, SLOT(runNLLocBClicked()));
 
     /* final */
+    connect(ui->mapB, SIGNAL(clicked()), this, SLOT(viewMapClicked()));
     connect(ui->saveB, SIGNAL(clicked()), this, SLOT(saveBClicked()));
     connect(ui->quitB, SIGNAL(clicked()), this, SLOT(accept()));
 }
@@ -90,8 +91,9 @@ void DataExtractor::setLanguageEn()
     ui->savePickB->setText("Save picks");
     ui->editParamNLLocB->setText("Edit parameters for NLLoc");
     ui->runNLLocB->setText("Run NLLoc");
+    ui->mapB->setText("Map");
     ui->saveB->setText("Save");
-    ui->quitB->setText("Quit");
+    ui->quitB->setText("Cancel");
     ui->staFileNameLB->setText("File name");
     ui->descLB->setText("Description");
     ui->timeLB->setText("Start time (GMT)");
@@ -114,6 +116,7 @@ void DataExtractor::setLanguageKo()
     ui->savePickB->setText(codec->toUnicode("피킹정보 저장"));
     ui->editParamNLLocB->setText(codec->toUnicode("NLLoc 설정값 수정"));
     ui->runNLLocB->setText(codec->toUnicode("NLLoc 실행"));
+    ui->mapB->setText(codec->toUnicode("지도"));
     ui->saveB->setText(codec->toUnicode("저장"));
     ui->quitB->setText(codec->toUnicode("취소"));
     ui->staFileNameLB->setText(codec->toUnicode("파일명"));
@@ -143,7 +146,7 @@ void DataExtractor::rvSignalfromDataExtractor()
     }
     QFile file;
 
-    file.setFileName(c.EVENTDIR + "/TMP/sta.info");
+    file.setFileName(c.EVENTDIR + "/NEWEVENT/sta.info");
     if( file.open( QIODevice::ReadOnly ) )
     {
         QTextStream stream(&file);
@@ -181,6 +184,13 @@ void DataExtractor::rvSignalfromDataExtractor()
     ui->descLE->setText(stafile.description);
 
     ui->staInfoTW->setRowCount(stafile.staName.count());
+    ui->staInfoTW->setColumnWidth(0, 52);
+    ui->staInfoTW->setColumnWidth(1, 53);
+    ui->staInfoTW->setColumnWidth(2, 50);
+    ui->staInfoTW->setColumnWidth(3, 50);
+    ui->staInfoTW->setColumnWidth(4, 100);
+    ui->staInfoTW->setColumnWidth(5, 100);
+    ui->staInfoTW->setColumnWidth(6, 90);
     for(int i=0;i<stafile.staName.count();i++)
     {
         ui->staInfoTW->setItem(i, 0, new QTableWidgetItem(stafile.staName[i]));
@@ -203,7 +213,7 @@ void DataExtractor::rvSignalfromDataExtractor()
 void DataExtractor::viewStaLocBClicked()
 {
     QString cmd;
-    cmd = "grep -v File " + c.EVENTDIR + "/TMP/sta.info | grep -v Desc > /usr/local/tomcat/webapps/viewstaloc/sta.info";
+    cmd = "grep -v File " + c.EVENTDIR + "/NEWEVENT/sta.info | grep -v Desc > /usr/local/tomcat/webapps/viewstaloc/sta.info";
     system(cmd.toLatin1().data());
     cmd = "firefox 127.0.0.1:8080/viewstaloc/index.jsp &";
     system(cmd.toLatin1().data());
@@ -230,32 +240,38 @@ void DataExtractor::extractBClicked()
     {
         QString scn = c.MSEEDDIR + "/" + year + "/" + stafile.netName[i] + "/" + stafile.staName[i] + "/" + stafile.chanName[i] + ".D/*";
         QString cmd;
-        cmd = "qmerge -T -f " + ststr + " -s " + ui->durationED->text() + " -b 512 -o " + c.EVENTDIR + "/TMP/data/mseed/" +
+        cmd = "qmerge -T -f " + ststr + " -s " + ui->durationED->text() + " -b 512 -o " + c.EVENTDIR + "/NEWEVENT/data/mseed/" +
                 stafile.staName[i] + ".mseed" + " " + scn;
         system(cmd.toLatin1().data());
     }
 
     QMessageBox msgBox;
     if(!korean) msgBox.setText("Completed extrating data");
-    else msgBox.setText(codec->toUnicode("관측소 정보 파일 수정 완료."));
+    else msgBox.setText(codec->toUnicode("데이터 추출 완료."));
     msgBox.exec();
 }
 
 void DataExtractor::runGeoBClicked()
 {
     QString cmd;
-    cmd = c.SCRIPTDIR + "/mseed2cssUsingGeotool.sh TMP";
+    cmd = c.SCRIPTDIR + "/mseed2css.sh NEWEVENT";
     system(cmd.toLatin1().data());
-    cmd = c.SCRIPTDIR + "/viewWave.sh TMP >> /dev/null 2>&1 &";
+    cmd = c.SCRIPTDIR + "/viewWave.sh NEWEVENT >> /dev/null 2>&1 &";
     system(cmd.toLatin1().data());
 }
 
 void DataExtractor::savePickBClicked()
 {
-    QString cmd = "cp " + c.EVENTDIR + "/TMP/data/css/css.arrival " + c.EVENTDIR + "/TMP/data/css/.css.arrival";
+    QString cmd = "cp " + c.EVENTDIR + "/NEWEVENT/data/css/css.arrival " + c.EVENTDIR + "/NEWEVENT/data/css/.css.arrival";
     system(cmd.toLatin1().data());
 
-    cmd = c.SCRIPTDIR + "/makePickforNLLoc.sh TMP";
+    cmd = "cp -R " + c.EVENTDIR + "/NEWEVENT/data " + c.EVENTDIR + "/NEWEVENT/NEWORIGIN/";
+    system(cmd.toLatin1().data());
+
+    cmd = c.SCRIPTDIR + "/cssarrivalTopicklist.sh NEWEVENT NEWORIGIN";
+    system(cmd.toLatin1().data());
+
+    cmd = "cp " + c.EVENTDIR + "/NEWEVENT/NEWORIGIN/picklist " + c.EVENTDIR + "/NEWEVENT/";
     system(cmd.toLatin1().data());
 
     QMessageBox msgBox;
@@ -264,11 +280,8 @@ void DataExtractor::savePickBClicked()
 
     ui->pickInfoTW->setRowCount(0);
 
-    cmd = "cp " + c.EVENTDIR + "/TMP/picklist " + c.EVENTDIR + "/TMP/TMP/picklist";
-    system(cmd.toLatin1().data());
-
     QFile file;
-    file.setFileName(c.EVENTDIR + "/TMP/picklist");
+    file.setFileName(c.EVENTDIR + "/NEWEVENT/picklist");
     if(file.open( QIODevice::ReadOnly ))
     {
         QTextStream stream(&file);
@@ -300,7 +313,7 @@ void DataExtractor::savePickBClicked()
 
 void DataExtractor::editParamNLLocBClicked()
 {
-    nlloc = new NLLoc(c, korean, "TMP", "TMP", "1", this);
+    nlloc = new NLLoc(c, korean, "NEWEVENT", "NEWORIGIN", "1", this);
     nlloc->show();
 }
 
@@ -309,7 +322,7 @@ void DataExtractor::runNLLocBClicked()
     ui->runNLLocB->setEnabled(false);
 
     QFile file;
-    file.setFileName(c.EVENTDIR + "/TMP/TMP/NLLOC/type");
+    file.setFileName(c.EVENTDIR + "/NEWEVENT/NEWORIGIN/NLLOC/type");
     QString minv,maxv;
 
     if(file.open( QIODevice::ReadOnly ))
@@ -329,18 +342,13 @@ void DataExtractor::runNLLocBClicked()
         file.close();
     }
 
-    QString cmd = "cp " + c.EVENTDIR + "/TMP/data/css/css.arrival " + c.EVENTDIR + "/TMP/data/css/.css.arrival";
+    QString cmd = "cp " + c.EVENTDIR + "/NEWEVENT/data/css/css.arrival " + c.EVENTDIR + "/NEWEVENT/data/css/.css.arrival";
     system(cmd.toLatin1().data());
 
-    if(TYPE == "SVM")
-    {
-        cmd = c.SCRIPTDIR + "/runNLLocSVM.sh TMP TMP 0";
-    }
-    else if(TYPE == "MVM")
-    {
-        cmd = c.SCRIPTDIR + "/runNLLocMVM.sh TMP TMP 0 " + minv + " " + maxv;
-    }
-    system(cmd.toLatin1().data());
+    if(TYPE.startsWith("SVM"))
+        runNLLoc(c.EVENTDIR, 0, 0, "NEWEVENT", TYPE, 0, 0);
+    else if(TYPE.startsWith("MVM"))
+        runNLLoc(c.EVENTDIR, 0, 0, "NEWEVENT", TYPE, minv.toFloat(), maxv.toFloat());
 
     QMessageBox msgBox;
     msgBox.setText("Finished NLLoc.");
@@ -348,7 +356,7 @@ void DataExtractor::runNLLocBClicked()
 
     ui->runNLLocB->setEnabled(true);
 
-    file.setFileName(c.EVENTDIR + "/TMP/TMP/LOC/NLLOC.origin");
+    file.setFileName(c.EVENTDIR + "/NEWEVENT/NEWORIGIN/LOC/origin");
 
     if( file.open( QIODevice::ReadOnly ) )
     {
@@ -372,6 +380,11 @@ void DataExtractor::runNLLocBClicked()
                     ui->timeLE->setText(_line.section(' ', 2, 2) + "-" + _line.section(' ', 3, 3) + "-"
                                         + _line.section(' ', 4, 4) + " " + _line.section(' ', 5, 5) + ":"
                                         + _line.section(' ', 6, 6) + ":" + _line.section(' ', 7, 7).section('.', 0, 0));
+                    EVNAME = ui->timeLE->text();
+                    ORITIME = _line.section(' ', 2, 2) + _line.section(' ', 3, 3)
+                            + _line.section(' ', 4, 4) + _line.section(' ', 5, 5)
+                            + _line.section(' ', 6, 6) + _line.section(' ', 7, 7).section('.', 0, 0) + "."
+                            + _line.section(' ', 7, 7).section('.', 1, 1);
                     if(TYPE == "SVM")
                         ui->algoLE->setText("NLLoc_SVM");
                     else if(TYPE == "MVM")
@@ -382,6 +395,7 @@ void DataExtractor::runNLLocBClicked()
         file.close();
     }
     ui->saveB->setEnabled(true);
+    ui->mapB->setEnabled(true);
 
     model->setQuery("SELECT max(evid) FROM event");
     int temp = model->record(0).value("max(evid)").toInt();
@@ -396,23 +410,85 @@ void DataExtractor::runNLLocBClicked()
     ui->oridLE->setText(ORID);
 }
 
-void DataExtractor::saveBClicked()
+void DataExtractor::viewMapClicked()
 {
     QString cmd;
-    cmd = "mv " + c.EVENTDIR + "/TMP " + c.EVENTDIR + "/" + EVID; system(cmd.toLatin1().data());
-    cmd = "mv " + c.EVENTDIR + "/" + EVID + "/TMP " + c.EVENTDIR + "/" + EVID + "/" + ORID; system(cmd.toLatin1().data());
-    cmd = "cp -R " + c.EVENTDIR + "/" + EVID + "/data " + c.EVENTDIR + "/" + EVID + "/" + ORID + "/"; system(cmd.toLatin1().data());
+    cmd = "rm /usr/local/tomcat/webapps/eventviewer/origin.info"; system(cmd.toLatin1().data());
+    cmd = "grep -v File " + c.EVENTDIR + "/NEWEVENT/sta.info | grep -v Desc > /usr/local/tomcat/webapps/eventviewer/sta.info"; system(cmd.toLatin1().data());
 
-    cmd = c.SCRIPTDIR + "/inputDatatoDB.sh " + EVID + " " + ORID + " Manual " + TYPE;
-    //qDebug() << cmd;
+    QString tot = ui->oridLE->text() + " " + ui->latLE->text() + " " + ui->lonLE->text() + " " + ui->depthLE->text() + " " +
+            ui->timeLE->text() + " " + ui->algoLE->text() + " ";
+
+    cmd = "echo \"" + ui->evidLE->text() + " " + tot + "\" >> /usr/local/tomcat/webapps/eventviewer/origin.info"; system(cmd.toLatin1().data());
+
+    cmd = "firefox 127.0.0.1:8080/eventviewer &";
     system(cmd.toLatin1().data());
+}
 
+void DataExtractor::saveBClicked()
+{
+    this->model = new QSqlQueryModel();
+    model->setQuery("SELECT max(arid) FROM assoc");
+    int maxarid = model->record(0).value("max(arid)").toInt() + 1;
+    QDate today = QDate::currentDate();
+    QString insertQuery;
+    QFile file;
+    file.setFileName(c.EVENTDIR + "/NEWEVENT/NEWORIGIN/picklist");
+    if(file.open(QIODevice::ReadOnly))
+    {
+        QTextStream stream( &file );
+        QString line, _line;
+
+        while(!stream.atEnd())
+        {
+            line = stream.readLine();
+            _line = line.simplified();
+
+            insertQuery = "INSERT INTO assoc (arid, orid, sta, chan, time, phase, p_algorithm, lddate) VALUES ("
+                    + QString::number(maxarid) + ", " + ORID + ", '" + _line.section(' ', 0, 0) + "', '"
+                    + _line.section(' ', 2, 2) + "', '" + _line.section(' ', 3, 3).right(12)
+                    + _line.section(' ', 4, 4).left(2) + "." + _line.section(' ', 4, 4).right(2)
+                    + "', '" + "P" + "', 'FP', '" + today.toString("yyyyMMdd") + "')";
+            //qDebug() << insertQuery;
+            model->setQuery(insertQuery);
+            maxarid++;
+
+        }
+        file.close();
+    }
+    QString jdate;
+    QDate date;
+    date.setDate(ui->timeLE->text().section('-', 0, 0).toInt(), ui->timeLE->text().section('-', 1, 1).toInt(),
+                 ui->timeLE->text().section('-', 2, 2).section(' ', 0, 0).toInt());
+    jdate = QString::number(date.year()) + QString::number(date.dayOfYear());
+    insertQuery = "INSERT INTO origin (lat, lon, depth, time, orid, evid, jdate, l_algorithm, lddate) VALUES ('"
+            + ui->latLE->text() + "', '" + ui->lonLE->text() + "', '" + ui->depthLE->text()
+            + "', '" + ORITIME + "', " + ORID + ", "
+            + EVID + ", '" + jdate + "', '" + ui->algoLE->text() + "', '" + today.toString("yyyyMMdd") + "')";
+    //qDebug() << insertQuery;
+    model->setQuery(insertQuery);
+
+    insertQuery = "INSERT INTO event (evid, evname, lddate) VALUES ("
+            + EVID + ", '" + EVNAME + "', '" + today.toString("yyyyMMdd") + "')";
+    //qDebug() << insertQuery;
+    model->setQuery(insertQuery);
+
+    QString cmd;
     cmd = "pkill geotool";
     system(cmd.toLatin1().data());
 
+    cmd = "mv " + c.EVENTDIR + "/NEWEVENT " + c.EVENTDIR + "/" + EVID;
+    system(cmd.toLatin1().data());
+
+    cmd = "mv " + c.EVENTDIR + "/" + EVID + "/NEWORIGIN " + c.EVENTDIR + "/" + EVID + "/" + ORID;
+    system(cmd.toLatin1().data());
+
     QMessageBox msgBox;
-    msgBox.setText("Added new event & origin.");
+    if(!korean) msgBox.setText("Added new event & origin.");
+    else msgBox.setText(codec->toUnicode("신규 이벤트 저장 완료."));
     msgBox.exec();
+
+    //emit resetTable();
 
     accept();
 }

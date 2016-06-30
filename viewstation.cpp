@@ -340,8 +340,15 @@ void ViewStation::genButtonClicked()
             temp3 = temp3.setNum(y, 10);
             temp4 = temp4.setNum(lond, 'f', 4);
 
-            stafile.latM << temp + " " + temp2 + "N";
-            stafile.lonM << temp3 + " " + temp4 + "E";
+            if(temp2.toFloat() < 10)
+                stafile.latM << temp + "  " + temp2 + "N";
+            else
+                stafile.latM << temp + " " + temp2 + "N";
+
+            if(temp4.toFloat() < 10)
+                stafile.lonM << temp3 + "  " + temp4 + "E";
+            else
+                stafile.lonM << temp3 + " " + temp4 + "E";
             stafile.elevM << stafile.elevKm[i].section('.',1,1);
 
             //qDebug() << stafile.staName[i] << " " << stafile.latD[i] << " " << stafile.lonD[i] << " " << stafile.elevKm[i];

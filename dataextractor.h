@@ -4,13 +4,14 @@
 #include <QDialog>
 #include <QSqlQuery>
 #include <QSqlQueryModel>
-#include <QSqlDatabase>>
+#include <QSqlDatabase>
 #include <QSqlRecord>
 #include <QSqlError>
 
 #include "common.h"
 #include "selectstafile.h"
 #include "nlloc.h"
+#include "locator.h"
 
 namespace Ui {
     class DataExtractor;
@@ -32,9 +33,7 @@ public:
 
     STAFILE stafile;
 
-    void setup();
-
-    QString EVID, ORID, MAINDIR, TYPE;
+    QString EVID, ORID, MAINDIR, TYPE, EVNAME, ORITIME;
 
 private:
     Ui::DataExtractor *ui;
@@ -63,6 +62,7 @@ private slots:
     void editParamNLLocBClicked();
     void runNLLocBClicked();
 
+    void viewMapClicked();
     void saveBClicked();
 
 signals:

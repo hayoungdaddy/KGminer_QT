@@ -32,7 +32,8 @@ SOURCES += main.cpp\
     filegenerator.cpp \
     util.cpp \
     checkewprocs.cpp \
-    eventgenerator.cpp
+    eventgenerator.cpp \
+    about.cpp
 
 HEADERS  += mainwindow.h \
     configstation.h \
@@ -56,7 +57,8 @@ HEADERS  += mainwindow.h \
     common.h \
     checkewprocs.h \
     eventgenerator.h \
-    locator.h
+    locator.h \
+    about.h
 
 FORMS    += mainwindow.ui \
     binder.ui \
@@ -70,17 +72,18 @@ FORMS    += mainwindow.ui \
     importdata.ui \
     datareciever.ui \
     datamonitor.ui \
-    picklist.ui
+    picklist.ui \
+    about.ui
 
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../libmseed/release/ -lmseed
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../libmseed/debug/ -lmseed
-else:unix: LIBS += -L$$PWD/../libmseed/ -lmseed
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../util/libmseed/release/ -lmseed
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../util/libmseed/debug/ -lmseed
+else:unix: LIBS += -L$$PWD/../../util/libmseed/ -lmseed
 
-INCLUDEPATH += $$PWD/../libmseed
-DEPENDPATH += $$PWD/../libmseed
+INCLUDEPATH += $$PWD/../../util/libmseed
+DEPENDPATH += $$PWD/../../util/libmseed
 
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../libmseed/release/libmseed.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../libmseed/debug/libmseed.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../libmseed/release/mseed.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../libmseed/debug/mseed.lib
-else:unix: PRE_TARGETDEPS += $$PWD/../libmseed/libmseed.a
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../../util/libmseed/release/libmseed.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../../util/libmseed/debug/libmseed.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../../util/libmseed/release/mseed.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../../util/libmseed/debug/mseed.lib
+else:unix: PRE_TARGETDEPS += $$PWD/../../util/libmseed/libmseed.a

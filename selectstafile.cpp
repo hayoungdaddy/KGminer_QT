@@ -87,7 +87,7 @@ void SelectStaFile::selectButtonClicked()
     QString cmd;
     if(event)
     {
-        cmd = "cp " + c.PARAMSDIR + "/staInfo/" + staFileName + " " + c.EVENTDIR + "/TMP/sta.info";
+        cmd = "cp " + c.PARAMSDIR + "/staInfo/" + staFileName + " " + c.EVENTDIR + "/NEWEVENT/sta.info";
         system(cmd.toLatin1().data());
         emit sendSignaltoDataExtractor();
     }
@@ -105,7 +105,7 @@ void SelectStaFile::selectButtonClicked()
     int scnCount;
 
     if(event)
-        file.setFileName(c.EVENTDIR + "/TMP/sta.info");
+        file.setFileName(c.EVENTDIR + "/NEWEVENT/sta.info");
     else
         file.setFileName(c.PARAMSDIR + "/sta.info");
 
@@ -170,8 +170,15 @@ void SelectStaFile::selectButtonClicked()
             temp3 = temp3.setNum(y, 10);
             temp4 = temp4.setNum(lond, 'f', 4);
 
-            stafile.latM << temp + " " + temp2 + "N";
-            stafile.lonM << temp3 + " " + temp4 + "E";
+            if(temp2.toFloat() < 10)
+                stafile.latM << temp + "  " + temp2 + "N";
+            else
+                stafile.latM << temp + " " + temp2 + "N";
+
+            if(temp4.toFloat() < 10)
+                stafile.lonM << temp3 + "  " + temp4 + "E";
+            else
+                stafile.lonM << temp3 + " " + temp4 + "E";
             stafile.elevM << stafile.elevKm[i].section('.',1,1);
         }
 

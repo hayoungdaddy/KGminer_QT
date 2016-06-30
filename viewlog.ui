@@ -447,7 +447,7 @@
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">background-color: rgb(170, 255, 255);</string>
+    <string notr="true"/>
    </property>
    <property name="frameShape">
     <enum>QFrame::Box</enum>
@@ -497,7 +497,7 @@
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">background-color: rgb(170, 255, 255);</string>
+    <string notr="true"/>
    </property>
    <property name="frameShape">
     <enum>QFrame::Box</enum>

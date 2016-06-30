@@ -5,6 +5,8 @@
 #include <QSqlQuery>
 #include <QSqlQueryModel>
 #include <QSqlRecord>
+#include <QSqlError>
+#include <QDate>
 
 #include "nlloc.h"
 #include "common.h"
@@ -28,6 +30,8 @@ public:
     QString EVID;
     QString FIRSTORID;
     QString TYPE;
+    QString EVNAME;
+    QString ORITIME;
 
     void setLanguageEn();
     void setLanguageKo();
@@ -37,7 +41,6 @@ private:
     Ui::MakeOrigin *ui;
 
     QTextCodec *codec;
-
     QSqlQueryModel *model;
 
 private slots:

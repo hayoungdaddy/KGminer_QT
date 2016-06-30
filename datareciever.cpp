@@ -72,7 +72,7 @@ void DataReciever::simulButtonClicked()
     /* gen tankplayer.d file */
     QFile file;
     /* generate binder_ew.d file. */
-    file.setFileName(PARAMSDIR + "/tankplayer.d");
+    file.setFileName(c.PARAMSDIR + "/tankplayer.d");
 
     if( file.open( QIODevice::WriteOnly ) )
     {

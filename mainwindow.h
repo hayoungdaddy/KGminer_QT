@@ -28,6 +28,7 @@
 #include "importdata.h"
 #include "picklist.h"
 #include "binder.h"
+#include "about.h"
 
 namespace Ui {
     class MainWindow;
@@ -53,6 +54,7 @@ public:
     QString parameterFileName;
 
     CFG cfg;
+    EWMODULEINFO ewmoduleinfo;
 
 private:
     Ui::MainWindow *ui;
@@ -87,6 +89,8 @@ private:
     EventMon *eventmon;
     DataExtractor *dataextractor;
     DataReciever *datareciever;
+
+    About *about;
 
     int posx, posy;
     void setPosition();
@@ -124,6 +128,7 @@ private slots:
     void actionEnglishClicked();
     void actionKoreanClicked();
     void actionExitClicked();
+    void actionAboutMeClicked();
 };
 
 #endif // MAINWINDOW_H

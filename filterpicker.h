@@ -2,6 +2,8 @@
 #define FILTERPICKER_H
 
 #include <QDialog>
+#include <QLabel>
+#include <QPushButton>
 #include <QLineEdit>
 #include <QList>
 #include <QVBoxLayout>

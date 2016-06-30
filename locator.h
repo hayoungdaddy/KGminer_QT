@@ -55,7 +55,12 @@ static void runNLLoc(QString eventDir, int evid, int orid, QString paramsDir, QS
 {
     QString resultDir, logDir, cmd;
 
-    if(paramsDir.startsWith("NEWORIGIN"))
+    if(paramsDir.startsWith("NEWEVENT"))
+    {
+        resultDir = eventDir + "/NEWEVENT/NEWORIGIN/LOC";
+        logDir = eventDir + "/NEWEVENT/NEWORIGIN/NLLOC";
+    }
+    else if(paramsDir.startsWith("NEWORIGIN"))
     {
         resultDir = eventDir + "/" + QString::number(evid) + "/NEWORIGIN/LOC";
         logDir = eventDir + "/" + QString::number(evid) + "/NEWORIGIN/NLLOC";
@@ -74,15 +79,16 @@ static void runNLLoc(QString eventDir, int evid, int orid, QString paramsDir, QS
     if(!dir.exists())
         dir.mkpath(".");
 
-    if(!paramsDir.startsWith("NEWORIGIN"))
+    if(!paramsDir.startsWith("NEWORIGIN") || !paramsDir.startsWith("NEWEVENT"))
     {
         cmd = "cp -R " + paramsDir + "/* " + logDir;
         system(cmd.toLatin1().data());
     }
 
+
     if(type.startsWith("SVM"))
     {
-        if(!paramsDir.startsWith("NEWORIGIN"))
+        if(!paramsDir.startsWith("NEWORIGIN") || !paramsDir.startsWith("NEWEVENT"))
         {
             changeEVIDORID(logDir, "grid_p.in", evid, orid);
             changeEVIDORID(logDir, "nlloc.in", evid, orid);
@@ -101,7 +107,7 @@ static void runNLLoc(QString eventDir, int evid, int orid, QString paramsDir, QS
     {
         for(float i=minVel;i<=maxVel;i=i+0.1)
         {
-            if(!paramsDir.startsWith("NEWORIGIN"))
+            if(!paramsDir.startsWith("NEWORIGIN") || !paramsDir.startsWith("NEWEVENT"))
             {
                 changeEVIDORID(logDir + "/" + QString::number(i, 'f', 1), "grid_p.in", evid, orid);
                 changeEVIDORID(logDir + "/" + QString::number(i, 'f', 1), "nlloc.in", evid, orid);

@@ -256,7 +256,7 @@ void EventGenerator::prParser(QString evname)
         file.close();
     }
 
-    QString cmd = c.SCRIPTDIR + "/mseed2cssUsingGeotool.sh " + QString::number(evid);
+    QString cmd = c.SCRIPTDIR + "/mseed2css.sh " + QString::number(evid);
     system(cmd.toLatin1().data());
     cmd = c.SCRIPTDIR + "/picklistTocssarrival.sh " + QString::number(evid);
     system(cmd.toLatin1().data());

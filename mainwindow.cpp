@@ -49,20 +49,6 @@ MainWindow::MainWindow(QWidget *parent) :
     sub4 = submenu->addAction("View Logs");
     submenu->hide();
 
-    /* Process Dialogs */
-    //binder = new Binder(this);
-    //binder->hide();
-    /*
-    viewlogFP = new ViewLog(this);
-    viewlogFP->hide();
-    viewlogBI = new ViewLog(this);
-    viewlogBI->hide();
-    viewlogNL = new ViewLog(this);
-    viewlogNL->hide();
-    viewlogTK = new ViewLog(this);
-    viewlogTK->hide();
-    */
-
     /* Main Menu Connection */
     connect(ui->stainfoButton, SIGNAL(clicked()), this, SLOT(stainfoViewerShow()));
     connect(ui->swarmButton, SIGNAL(clicked()), this, SLOT(showWave()));
@@ -88,6 +74,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionEnglish, SIGNAL(triggered()), this, SLOT(actionEnglishClicked()));
     connect(ui->actionKorean, SIGNAL(triggered()), this, SLOT(actionKoreanClicked()));
     connect(ui->actionExit, SIGNAL(triggered()), this, SLOT(actionExitClicked()));
+    connect(ui->actionAbout_KGminer, SIGNAL(triggered()), this, SLOT(actionAboutMeClicked()));
 
     /* SubMenu Connection */
     connect(sub1, SIGNAL(triggered()), this, SLOT(killProcess()));
@@ -103,15 +90,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    //procscheckthred->terminate();
-    //eventcheckthred->terminate();
     delete ui;
 }
 
 void MainWindow::openDB()
 {
     kgminerdb = QSqlDatabase::addDatabase("QSQLITE");
-    kgminerdb.setDatabaseName(DB);
+    kgminerdb.setDatabaseName(cfg.DBDIR + "/" + cfg.DBNAME);
     if(!kgminerdb.open())
     {
         QMessageBox msgBox;
@@ -121,8 +106,9 @@ void MainWindow::openDB()
     }
 }
 
-void MainWindow::recvEWModuleList(EWMODULEINFO ewmoduleinfo)
+void MainWindow::recvEWModuleList(EWMODULEINFO info)
 {
+    ewmoduleinfo = info;
     ui->datarecieverB->setStyleSheet("background-color: rgb(255, 0, 0);color: rgb(255, 255, 255);");
     ui->filterpickerB->setStyleSheet("background-color: rgb(255, 0, 0);color: rgb(255, 255, 255);");
     ui->binderB->setStyleSheet("background-color: rgb(255, 0, 0);color: rgb(255, 255, 255);");
@@ -132,8 +118,6 @@ void MainWindow::recvEWModuleList(EWMODULEINFO ewmoduleinfo)
     {
         if(ewmoduleinfo.prName[i].startsWith("tankplayer") && ewmoduleinfo.status[i].startsWith("Alive"))
             ui->datarecieverB->setStyleSheet("background-color: rgb(170, 255, 127);");
-        //else if(ewmoduleinfo.prName[i].startsWith("slink2ew") && ewmoduleinfo.status[i].startsWith("Alive"))
-            //ui->datarecieverB->setStyleSheet("background-color: rgb(170, 255, 127);");
         else if(ewmoduleinfo.prName[i].startsWith("pick_FP") && ewmoduleinfo.status[i].startsWith("Alive"))
             ui->filterpickerB->setStyleSheet("background-color: rgb(170, 255, 127);");
         else if(ewmoduleinfo.prName[i].startsWith("binder_ew") && ewmoduleinfo.status[i].startsWith("Alive"))
@@ -168,7 +152,7 @@ void MainWindow::stopEWprocess()
                     QString::null, 1, 1 ) )
         {
             QString cmd = cfg.BINDIR + "/pau";
-            //system(cmd.toLatin1().data());
+            system(cmd.toLatin1().data());
         }
     }
     else
@@ -181,7 +165,7 @@ void MainWindow::stopEWprocess()
                     QString::null, 1, 1 ) )
         {
             QString cmd = cfg.BINDIR + "/pau";
-            //system(cmd.toLatin1().data());
+            system(cmd.toLatin1().data());
         }
     }
 }
@@ -203,7 +187,7 @@ void MainWindow::filterpickerButtonClicked()
     if(!sub3->isEnabled())
         sub3->setEnabled(true);
     submenu->show();
-    parameterFileName = "filterpicker";
+    parameterFileName = "pick_FP";
 }
 
 void MainWindow::binderButtonClicked()
@@ -213,7 +197,7 @@ void MainWindow::binderButtonClicked()
     if(!sub3->isEnabled())
         sub3->setEnabled(true);
     submenu->show();
-    parameterFileName = "binder";
+    parameterFileName = "binder_ew";
 }
 
 void MainWindow::loc1ButtonClicked()
@@ -223,99 +207,59 @@ void MainWindow::loc1ButtonClicked()
     if(!sub3->isEnabled())
         sub3->setEnabled(true);
     submenu->show();
-    if(ui->loc1B->text() == "NonLinLoc")
-        parameterFileName = "nlloc1";
-    else
-        parameterFileName = "grid1";
+    parameterFileName = "eqproc";
 }
-
 
 /* Sub Menu slots */
 void MainWindow::killProcess()
 {
-    QFile file;
-    QString cmd = "";
+    QString cmd;
 
-    if(parameterFileName == "tankplayer")
-        file.setFileName(cfg.SCRIPTDIR + "/pid/tankplayer.pid");
-    else if(parameterFileName == "binder")
-        file.setFileName(cfg.SCRIPTDIR + "/pid/binder.pid");
-    else if(parameterFileName == "nlloc1" || parameterFileName == "grid1")
-        file.setFileName(cfg.SCRIPTDIR + "/pid/loc1.pid");
-    else if(parameterFileName == "filterpicker")
-        file.setFileName(cfg.SCRIPTDIR + "/pid/pickfp.pid");
-    else if(parameterFileName == "ew2mseed")
-        file.setFileName(cfg.SCRIPTDIR + "/pid/ew2mseed.pid");
-
-    if( file.open( QIODevice::ReadOnly ) )
+    for(int i=0;i<ewmoduleinfo.prName.count();i++)
     {
-        QTextStream stream(&file);
-        QString line;
-
-        line = stream.readLine();
-
-        cmd = cfg.BINDIR + "/pidpau " + line;
-        system(cmd.toLatin1().data());
-        cmd = cfg.BINDIR + "/status";
-        system(cmd.toLatin1().data());
-        file.close();
+        if(parameterFileName.startsWith(ewmoduleinfo.prName[i]))
+        {
+            cmd = cfg.BINDIR + "/pidpau " + ewmoduleinfo.prID[i];
+            qDebug() << cmd;
+            system(cmd.toLatin1().data());
+            break;
+        }
     }
 }
 
 void MainWindow::restartProcess()
 {
-    QFile file;
-    QString cmd = "";
+    QString cmd;
 
-    if(parameterFileName == "tankplayer")
+    for(int i=0;i<ewmoduleinfo.prName.count();i++)
     {
-        file.setFileName(cfg.SCRIPTDIR + "/pid/tankplayer.pid");
-        latencymon->setup();
-        picklist->clear();
-        picklist->setup();
+        if(parameterFileName.startsWith(ewmoduleinfo.prName[i]))
+        {
+            cmd = cfg.BINDIR + "/restart " + ewmoduleinfo.prID[i];
+            system(cmd.toLatin1().data());
+            break;
+        }
     }
-    else if(parameterFileName == "binder")
-        file.setFileName(cfg.SCRIPTDIR + "/pid/binder.pid");
-    else if(parameterFileName == "nlloc1" || parameterFileName == "grid1")
-        file.setFileName(cfg.SCRIPTDIR + "/pid/loc1.pid");
-    else if(parameterFileName == "filterpicker")
-        file.setFileName(cfg.SCRIPTDIR + "/pid/pickfp.pid");
-    else if(parameterFileName == "ew2mseed")
-        file.setFileName(cfg.SCRIPTDIR + "/pid/ew2mseed.pid");
-
-    if( file.open( QIODevice::ReadOnly ) )
-    {
-        QTextStream stream(&file);
-        QString line;
-
-        line = stream.readLine();
-
-        cmd = cfg.BINDIR + "/restart " + line;
-        system(cmd.toLatin1().data());
-
-        file.close();
-    }
-
 }
 
 void MainWindow::changeParameterDialogShow()
 {
-    if(parameterFileName == "filterpicker")
+    if(parameterFileName.startsWith("pick_FP"))
     {
         filterpicker = new FilterPicker(cfg, korean, this);
         filterpicker->show();
     }
-    else if(parameterFileName == "binder")
+    else if(parameterFileName.startsWith("binder"))
     {
         binder = new Binder(cfg, korean, this);
         binder->show();
     }
-    else if(parameterFileName == "nlloc1")
+    else if(parameterFileName.startsWith("eqproc"))
     {
         nlloc1 = new NLLoc(cfg, korean, "0", "0", "1", this);
         nlloc1->show();
     }
-    else if(parameterFileName == "tankplayer")
+    else if(parameterFileName.startsWith("tankplayer"))
     {
         datareciever = new DataReciever( cfg, this );
         datareciever->reset();
@@ -325,28 +269,30 @@ void MainWindow::changeParameterDialogShow()
 
 void MainWindow::viewLog()
 {
-    /*
-    if(parameterFileName == "filterpicker")
+    if(parameterFileName.startsWith("pick_FP"))
     {
+        viewlogFP = new ViewLog(cfg, korean, this);
         viewlogFP->setup("pick_FP");
         viewlogFP->show();
     }
-    else if(parameterFileName == "binder")
+    else if(parameterFileName.startsWith("binder_ew"))
     {
+        viewlogBI = new ViewLog(cfg, korean, this);
         viewlogBI->setup("binder_ew");
         viewlogBI->show();
     }
-    else if(parameterFileName == "nlloc1")
+    else if(parameterFileName.startsWith("eqproc"))
     {
-        viewlogNL->setup("NLLoc1");
+        viewlogNL = new ViewLog(cfg, korean, this);
+        viewlogNL->setup("eqproc");
         viewlogNL->show();
     }
-    else if(parameterFileName == "tankplayer")
+    else if(parameterFileName.startsWith("tankplayer"))
     {
+        viewlogTK = new ViewLog(cfg, korean, this);
         viewlogTK->setup("tankplayer");
         viewlogTK->show();
     }
-    */
 }
 
 void MainWindow::setPosition()
@@ -548,4 +494,10 @@ void MainWindow::dataExtractorShow()
 {
     dataextractor = new DataExtractor(cfg, korean, this);
     dataextractor->show();
+}
+
+void MainWindow::actionAboutMeClicked()
+{
+    about = new About(this);
+    about->show();
 }

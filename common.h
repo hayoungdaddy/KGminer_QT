@@ -9,17 +9,6 @@
 #include <QDir>
 #include <QProcess>
 
-static QString HOMEDIR="/opt/KGminer/V1.0";
-static QString BINDIR="/opt/KGminer/V1.0/bin";
-static QString PARAMSDIR="/opt/KGminer/V1.0/params";
-static QString SCRIPTDIR="/opt/KGminer/V1.0/script";
-static QString MSEEDDIR="/data/mseed";
-static QString DATADIR="/data";
-static QString DB="/data/db/kgminer.db";
-static QString TMPDIR="/data/tmp";
-static QString EVENTDIR="/data/event";
-//static int LATENCYSOCKNUM = 9908;
-
 typedef struct
 {
     QString filename;
@@ -41,6 +30,7 @@ typedef struct
     QString BINDIR;
     QString PARAMSDIR;
     QString SCRIPTDIR;
+    QString LOGDIR;
     QString MSEEDDIR;
     QString TNKDIR;
     QString EVENTDIR;

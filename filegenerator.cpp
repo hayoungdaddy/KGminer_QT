@@ -105,7 +105,7 @@ void FileGenerator::tanklist_gen(CFG c, STAFILE stafile)
         for(int i=0;i<scnCount;i++)
         {
             stream << "Tank " << stafile.staName[i] << " " << stafile.chanName[i] <<
-                      " " << stafile.netName[i] << " " << stafile.locName[i] << " 2948 INST_UNKNOWN MOD_WILDCARD 100 10000	" + DATADIR + "/tnk/" <<
+                      " " << stafile.netName[i] << " " << stafile.locName[i] << " 2948 INST_UNKNOWN MOD_WILDCARD 100 10000	" + c.TNKDIR + "/" <<
                       stafile.staName[i] << "." << stafile.chanName[i] << "." << stafile.netName[i] << "." << stafile.locName[i] << ".tnk" << "\n";
         }
 
@@ -249,7 +249,7 @@ void FileGenerator::ew2mseed_gen(CFG c, STAFILE stafile)
     }
 }
 
-// event == true : c.EVENTDIR + "/TMP/TMP/NLLOC/" is basic dir
+// event == true : c.EVENTDIR + "/NEWEVENT/NEWORIGIN/NLLOC/" is basic dir
 // event == false : c.PARAMSDIR + "/NLLOC/1~3/" is basic dir
 // nlloc_gen function is making files for SVM mode only
 void FileGenerator::nlloc_gen(bool event, CFG c, STAFILE stafile, QString avgLat, QString avgLon)
@@ -257,7 +257,7 @@ void FileGenerator::nlloc_gen(bool event, CFG c, STAFILE stafile, QString avgLat
     QString mainDir;
 
     if(event)
-        mainDir = c.EVENTDIR + "/TMP/TMP/NLLOC";
+        mainDir = c.EVENTDIR + "/NEWEVENT/NEWORIGIN/NLLOC";
     else
         mainDir = c.PARAMSDIR + "/NLLOC";
 
@@ -270,9 +270,9 @@ void FileGenerator::nlloc_gen(bool event, CFG c, STAFILE stafile, QString avgLat
     if(event)
     {
         gen_type(mainDir + "/type");
-        gen_gridP(mainDir + "/grid_p.in", stafile, avgLat, avgLon, fst, lst, scnCount, c.EVENTDIR + "/TMP/TMP/NLLOC");
-        gen_nllocIn(mainDir + "/nlloc.in", avgLat, avgLon, fst, lst, c.EVENTDIR + "/TMP/TMP/picklist" ,
-                    c.EVENTDIR + "/TMP/TMP/NLLOC", c.EVENTDIR + "/TMP/TMP/LOC/NLLOC");
+        gen_gridP(mainDir + "/grid_p.in", stafile, avgLat, avgLon, fst, lst, scnCount, c.EVENTDIR + "/NEWEVENT/NEWORIGIN/NLLOC");
+        gen_nllocIn(mainDir + "/nlloc.in", avgLat, avgLon, fst, lst, c.EVENTDIR + "/NEWEVENT/NEWORIGIN/picklist" ,
+                    c.EVENTDIR + "/NEWEVENT/NEWORIGIN/NLLOC", c.EVENTDIR + "/NEWEVENT/NEWORIGIN/LOC/NLLOC");
     }
     else
     {

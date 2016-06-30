@@ -1,5 +1,5 @@
 #include "filterpicker.h"
-#include "ui_filterpicker.h"
+//#include "ui_filterpicker.h"
 
 FilterPicker::FilterPicker(CFG cfg, bool _korean, QWidget *parent) :
     QDialog(parent)

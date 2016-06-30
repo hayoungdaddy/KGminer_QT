@@ -72,17 +72,19 @@ void ImportData::openFileBrowser()
 {
     QStringList fileNames, filteredFilenames;
 
-    /*
+
     if(!korean)
         fileNames = QFileDialog::getOpenFileNames(this, "Select data files", "/media/sf_KGminer", "*.*");
     else
         fileNames = QFileDialog::getOpenFileNames(this, codec->toUnicode("입력 데이터를 선택하십시오. (miniseed format only)"), "/media/sf_KGminer", "*.*");
-        */
 
+
+    /*
     if(!korean)
         fileNames = QFileDialog::getOpenFileNames(this, "Select data files", "/home/yyw/data", "*.*");
     else
         fileNames = QFileDialog::getOpenFileNames(this, codec->toUnicode("입력 데이터를 선택하십시오. (miniseed format only)"), "/home/yyw/data", "*.*");
+        */
 
     ui->tableWidget->setRowCount(0);
 
@@ -91,7 +93,7 @@ void ImportData::openFileBrowser()
     if(count == 0)
         return;
 
-    QRegExp rx("\\b(ACE|LOG|VFP|VMU|VMV|VMW|LCQ|LCE|LHE|LHN|LHZ|LGE|LGN|LGZ|OCF|HAZ|HAN|HAE|BAZ|BAN|BAE)\\b");
+    QRegExp rx("\\b(cpu|deg|hum|lce|lcq|vec|vep|vvb|vvx|C4|C8|C12|C16|ACE|LOG|VFP|VMU|VMV|VMW|LCQ|LCE|LHE|LHN|LHZ|LGE|LGN|LGZ|OCF|HAZ|HAN|HAE|BAZ|BAN|BAE)\\b");
 
     for(int i=0;i<count;i++)
     {
@@ -134,6 +136,7 @@ void ImportData::openFileBrowser()
             ui->tableWidget->item(i, 4)->setTextAlignment(Qt::AlignCenter);
 
             readMseedFile(filteredFilenames[i], i);
+
         }
         ui->pb->setValue(count);
     }
@@ -195,14 +198,22 @@ void ImportData::genButtonClicked()
 
         ui->pb->setValue(i);
 
-        QString cmd ;
-        cmd = c.BINDIR +"/scart -s -I " + ui->tableWidget->item(i,0)->text() + " " + c.MSEEDDIR;
-        system(cmd.toLatin1().data());
+        if(ui->tableWidget->item(i,1)->text().startsWith("Unvalidated data"))
+        {
+            qDebug() << ui->tableWidget->item(i,0)->text();
+        }
+        else
+        {
+            QString cmd ;
+            cmd = c.BINDIR +"/scart -s -I " + ui->tableWidget->item(i,0)->text() + " " + c.MSEEDDIR;
+            system(cmd.toLatin1().data());
+        }
     }
 
     ui->status->setText("Sorting...");
     scnl.removeDuplicates();
 
+    /*
     for(int i=0;i<scnl.count();i++)
     {
         //qDebug() << scnl[i];
@@ -212,6 +223,7 @@ void ImportData::genButtonClicked()
         cmd = "mv " + sort + " " + scnl[i];
         system(cmd.toLatin1().data());
     }
+    */
 
     ui->pb->setValue(count);
 
@@ -248,7 +260,16 @@ void ImportData::readMseedFile(QString fileName, int i)
     }
 
     if(retcode != MS_ENDOFFILE)
-        qDebug() << "Error reading";
+    {
+        //qDebug() << "Error reading";
+        ui->tableWidget->setItem(i, 1, new QTableWidgetItem( "Unvalidated data" ));
+        ui->tableWidget->item(i, 1)->setTextAlignment(Qt::AlignCenter);
+        ui->tableWidget->setItem(i, 2, new QTableWidgetItem( "Unvalidated data" ));
+        ui->tableWidget->item(i, 2)->setTextAlignment(Qt::AlignCenter);
+        ui->tableWidget->setItem(i, 3, new QTableWidgetItem( "Unvalidated data" ));
+        ui->tableWidget->item(i, 3)->setTextAlignment(Qt::AlignCenter);
+        return;
+    }
 
     QDateTime start;
     QDateTime end;
@@ -266,6 +287,10 @@ void ImportData::readMseedFile(QString fileName, int i)
     scnl << c.MSEEDDIR + "/" + start.toString("yyyy") + "/" + mstg->traces->network + "/" + mstg->traces->station + "/" + mstg->traces->channel + ".D/"
             + mstg->traces->network + "." + mstg->traces->station + "." + mstg->traces->location
             + "." + mstg->traces->channel + ".D." + start.toString("yyyy") + "." + QString::number(date.dayOfYear());
+
+    qDebug() << c.MSEEDDIR + "/" + start.toString("yyyy") + "/" + mstg->traces->network + "/" + mstg->traces->station + "/" + mstg->traces->channel + ".D/"
+                + mstg->traces->network + "." + mstg->traces->station + "." + mstg->traces->location
+                + "." + mstg->traces->channel + ".D." + start.toString("yyyy") + "." + QString::number(date.dayOfYear());
 
     //qDebug() << QString::number(mstg->traces->samplecnt);
 

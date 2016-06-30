@@ -64,7 +64,7 @@ void NLLoc::setup()
 {
     // EVID == "0" is normal change mode
     // EVID == num is make new origin mode
-    // EVID == "TMP" is make new event mode
+    // EVID == "NEWEVENT" is make new event mode
 
     if(EVID == "0")
         MAINDIR = c.PARAMSDIR + "/NLLOC/" + NUMBER;

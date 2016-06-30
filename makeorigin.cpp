@@ -82,24 +82,49 @@ void MakeOrigin::closeEvent(QCloseEvent *event)
 
 void MakeOrigin::on_quitButton_clicked()
 {
-    if( !QMessageBox::question( this,
-                                "Warning",
-                "Are you sure?",
-                "Yes",
-                "No",
-                QString::null, 1, 1 ) )
+    if(!korean)
     {
-        QString cmd = "pkill geotool";
-        system(cmd.toLatin1().data());
+        if( !QMessageBox::question( this,
+                                    "Warning",
+                    "Are you sure?",
+                    "Yes",
+                    "No",
+                    QString::null, 1, 1 ) )
+        {
+            QString cmd = "pkill geotool";
+            system(cmd.toLatin1().data());
 
-        QDir dir;
-        dir.setPath(c.EVENTDIR + "/" + EVID + "/NEWORIGIN");
-        dir.removeRecursively();
+            QDir dir;
+            dir.setPath(c.EVENTDIR + "/" + EVID + "/NEWORIGIN");
+            dir.removeRecursively();
 
-        accept();
+            accept();
+        }
+        else
+            return;
     }
     else
-        return;
+    {
+        if( !QMessageBox::question( this,
+                                    "Warning",
+                    codec->toUnicode("종료하시겠습니까?"),
+                    "Yes",
+                    "No",
+                    QString::null, 1, 1 ) )
+        {
+            QString cmd = "pkill geotool";
+            system(cmd.toLatin1().data());
+
+            QDir dir;
+            dir.setPath(c.EVENTDIR + "/" + EVID + "/NEWORIGIN");
+            dir.removeRecursively();
+
+            accept();
+        }
+        else
+            return;
+    }
+
 }
 
 void MakeOrigin::on_showButton_clicked()
@@ -213,9 +238,39 @@ void MakeOrigin::on_nllocButton_clicked()
                     ui->latLE->setText(_line.section(' ', 9, 9));
                     ui->lonLE->setText(_line.section(' ', 11, 11));
                     ui->depthLE->setText(_line.section(' ', 13, 13));
+                    /*
                     ui->timeLE->setText(_line.section(' ', 2, 2) + "-" + _line.section(' ', 3, 3) + "-"
                                         + _line.section(' ', 4, 4) + " " + _line.section(' ', 5, 5) + ":"
                                         + _line.section(' ', 6, 6) + ":" + _line.section(' ', 7, 7).section('.', 0, 0));
+                                        */
+
+                    if(_line.section(' ', 7, 7).section('.', 0, 0) == "0")
+                    {
+                        EVNAME = _line.section(' ', 2, 2) + "-" + _line.section(' ', 3, 3) + "-" + _line.section(' ', 4, 4)
+                            + " " + _line.section(' ', 5, 5) + ":" + _line.section(' ', 6, 6) + ":" + "00";
+
+                        ORITIME = _line.section(' ', 2, 2) + _line.section(' ', 3, 3) + _line.section(' ', 4, 4)
+                                + _line.section(' ', 5, 5) + _line.section(' ', 6, 6) + "00." + _line.section(' ', 7, 7).section('.', 1, 1);
+                    }
+                    else if(_line.section(' ', 7, 7).section('.', 0, 0).toInt() > 0 && _line.section(' ', 7, 7).section('.', 0, 0).toInt() < 10 )
+                    {
+                        EVNAME = _line.section(' ', 2, 2) + "-" + _line.section(' ', 3, 3) + "-" + _line.section(' ', 4, 4)
+                            + " " + _line.section(' ', 5, 5) + ":" + _line.section(' ', 6, 6) + ":" + "0" + _line.section(' ', 7, 7).section('.', 0, 0);
+
+                        ORITIME = _line.section(' ', 2, 2) + _line.section(' ', 3, 3) + _line.section(' ', 4, 4)
+                                + _line.section(' ', 5, 5) + _line.section(' ', 6, 6) + "0" + _line.section(' ', 7, 7).section('.', 0, 0) + "."+ _line.section(' ', 7, 7).section('.', 1, 1);
+                    }
+                    else
+                    {
+                        EVNAME = _line.section(' ', 2, 2) + "-" + _line.section(' ', 3, 3) + "-" + _line.section(' ', 4, 4)
+                            + " " + _line.section(' ', 5, 5) + ":" + _line.section(' ', 6, 6) + ":" + _line.section(' ', 7, 7).section('.', 0, 0);
+
+                        ORITIME = _line.section(' ', 2, 2) + _line.section(' ', 3, 3) + _line.section(' ', 4, 4)
+                                + _line.section(' ', 5, 5) + _line.section(' ', 6, 6) + _line.section(' ', 7, 7);
+                    }
+
+                    ui->timeLE->setText(EVNAME);
+
                     if(TYPE == "SVM")
                         ui->alLE->setText("NLLoc_SVM");
                     else if(TYPE == "MVM")
@@ -241,53 +296,64 @@ void MakeOrigin::on_nllocButton_clicked()
 
 void MakeOrigin::on_inputDBButton_clicked()
 {
-    /* make picklist */
-    file.setFileName(rootDir + "/picklist");
-    if(file.open(QIODevice::WriteOnly))
+    this->model = new QSqlQueryModel();
+    model->setQuery("SELECT max(orid) FROM origin");
+    int maxorid = model->record(0).value("max(orid)").toInt() + 1;
+    model->setQuery("SELECT max(arid) FROM assoc");
+    int maxarid = model->record(0).value("max(arid)").toInt() + 1;
+    QDate today = QDate::currentDate();
+    QString insertQuery;
+    QFile file;
+    file.setFileName(c.EVENTDIR + "/" + EVID + "/NEWORIGIN/picklist");
+    if(file.open(QIODevice::ReadOnly))
     {
-        QTextStream stream( &file ) ;
-        for(int i=0;i<pickinfo.staName.count();i++)
+        QTextStream stream( &file );
+        QString line, _line;
+
+        while(!stream.atEnd())
         {
-            // G01   -1 HGZ  P?0201512010451 4501  --> picklist
-            if(pickinfo.staName[i].count() == 3)
-                stream << pickinfo.staName[i] << "  ";
-            else if(pickinfo.staName[i].count() == 4)
-                stream << pickinfo.staName[i] << " ";
-            else if(pickinfo.staName[i].count() == 5)
-                stream << pickinfo.staName[i];
+            line = stream.readLine();
+            _line = line.simplified();
 
-            stream << " " << pickinfo.locName[i] << " " << pickinfo.chanName[i] << "  ";
-            stream << pickinfo.phase[i] << "?0" << pickinfo.dateTime[i] << " " << pickinfo.sec[i] << pickinfo.msec[i] << "\n";
-
-            /* insert onto assoc */
             insertQuery = "INSERT INTO assoc (arid, orid, sta, chan, time, phase, p_algorithm, lddate) VALUES ("
-                    + QString::number(arid) + ", " + QString::number(orid) + ", '" + pickinfo.staName[i] + "', '"
-                    + pickinfo.chanName[i] + "', '" + pickinfo.dateTime[i] + pickinfo.sec[i] + "." + pickinfo.msec[i]
-                    + "', '" + pickinfo.phase[i] + "', 'FP', '" + today.toString("yyyyMMdd") + "')";
-
+                    + QString::number(maxarid) + ", " + QString::number(maxorid) + ", '" + _line.section(' ', 0, 0) + "', '"
+                    + _line.section(' ', 2, 2) + "', '" + _line.section(' ', 3, 3).right(12)
+                    + _line.section(' ', 4, 4).left(2) + "." + _line.section(' ', 4, 4).right(2)
+                    + "', '" + "P" + "', 'FP', '" + today.toString("yyyyMMdd") + "')";
+            //qDebug() << insertQuery;
             model->setQuery(insertQuery);
-            arid++;
+            maxarid++;
+
         }
         file.close();
     }
+    QString jdate;
+    QDate date;
+    date.setDate(ui->timeLE->text().section('-', 0, 0).toInt(), ui->timeLE->text().section('-', 1, 1).toInt(),
+                 ui->timeLE->text().section('-', 2, 2).section(' ', 0, 0).toInt());
+    jdate =     jdate = QString::number(date.year()) + QString::number(date.dayOfYear());
+    insertQuery = "INSERT INTO origin (lat, lon, depth, time, orid, evid, jdate, l_algorithm, lddate) VALUES ('"
+            + ui->latLE->text() + "', '" + ui->lonLE->text() + "', '" + ui->depthLE->text()
+            + "', '" + ORITIME + "', " + QString::number(maxorid) + ", "
+            + EVID + ", '" + jdate + "', '" + ui->alLE->text() + "', '" + today.toString("yyyyMMdd") + "')";
+    //qDebug() << insertQuery;
+    model->setQuery(insertQuery);
 
-    /*
     QString cmd;
-    cmd = c.SCRIPTDIR + "/inputDatatoDB.sh " + EVID + " " + ORID + " Manual " + TYPE;
-    qDebug() << cmd;
-    system(cmd.toLatin1().data());
-
     cmd = "pkill geotool";
     system(cmd.toLatin1().data());
 
+    cmd = "mv " + c.EVENTDIR + "/" + EVID + "/NEWORIGIN " + c.EVENTDIR + "/" + EVID + "/" + QString::number(maxorid);
+    system(cmd.toLatin1().data());
+
     QMessageBox msgBox;
-    msgBox.setText("Added new origin.");
+    if(!korean) msgBox.setText("Added new origin.");
+    else msgBox.setText(codec->toUnicode("신규 Origin 저장 완료."));
     msgBox.exec();
 
     emit resetTable();
 
     accept();
-    */
 }
 
 void MakeOrigin::on_mapButton_clicked()

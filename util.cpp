@@ -12,7 +12,7 @@ CFG Util::readCfg()
 {
     CFG cfg;
     QFile file;
-    file.setFileName("/opt/KGminer/V1.0/params/KGminer.params");
+    file.setFileName("/opt/KGminer/params/KGminer.params");
 
     if( file.open( QIODevice::ReadOnly ) )
     {
@@ -38,6 +38,11 @@ CFG Util::readCfg()
             else if(line.startsWith("SCRIPTDIR"))
             {
                 cfg.SCRIPTDIR = line.section("=",1,1);
+                continue;
+            }
+            else if(line.startsWith("LOGDIR"))
+            {
+                cfg.LOGDIR = line.section("=",1,1);
                 continue;
             }
             else if(line.startsWith("MSEEDDIR"))

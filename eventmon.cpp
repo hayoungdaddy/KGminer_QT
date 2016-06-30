@@ -191,8 +191,11 @@ void EventMon::clickEventTable(int row, int col)
         {
             QString orid = model->record(i).value("orid").toString();
             QString lat = model->record(i).value("lat").toString();
+            lat = lat.section('.',0,0) + "." + lat.section('.',1,1).left(6);
             QString lon = model->record(i).value("lon").toString();
+            lon = lon.section('.',0,0) + "." + lon.section('.',1,1).left(6);
             QString depth = model->record(i).value("depth").toString();
+            depth = depth.section('.',0,0) + "." + depth.section('.',1,1).left(6);
             QString time = model->record(i).value("time").toString();
             time = time.left(4) + "-" + time.mid(4,2) + "-" + time.mid(6,2) + " " + time.mid(8,2) + ":" + time.mid(10,2) + ":" + time.section('.',0,0).mid(12,2);
             QString l_algorithm = model->record(i).value("l_algorithm").toString();
@@ -232,6 +235,14 @@ void EventMon::clickEventTable(int row, int col)
             qry.exec();
             qry.prepare( "DELETE FROM event WHERE evid = " + ui->eventTable->item(row, 0)->text() );
             qry.exec();
+
+            QString dirName = c.EVENTDIR + "/" + ui->eventTable->item(row, 0)->text();
+            QDir dir(dirName);
+
+            if(dir.exists())
+            {
+                dir.removeRecursively();
+            }
 
             setup();
         }
