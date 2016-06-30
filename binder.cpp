@@ -20,6 +20,7 @@ Binder::Binder(CFG cfg, bool _korean, QWidget *parent) :
 
     connect(ui->quitButton, SIGNAL(clicked()), this, SLOT(accept()));
     connect(ui->genButton, SIGNAL(clicked()), this, SLOT(genButtonClicked()));
+    connect(ui->defaultButton, SIGNAL(clicked()), this, SLOT(defaultButtonClicked()));
 }
 
 Binder::~Binder()
@@ -95,6 +96,7 @@ void Binder::setLanguageEn()
 {
     setWindowTitle("Config Binder Parameters");
     ui->genButton->setText("Generate");
+    ui->defaultButton->setText("Default");
     ui->quitButton->setText("Quit");
     ui->lb1->setText("Parameter Name");
     ui->lb2->setText("Name");
@@ -104,9 +106,26 @@ void Binder::setLanguageKo()
 {
     setWindowTitle(codec->toUnicode("Binder 설정 값 변경"));
     ui->genButton->setText(codec->toUnicode("변경"));
+    ui->defaultButton->setText(codec->toUnicode("기본값"));
     ui->quitButton->setText(codec->toUnicode("취소"));
     ui->lb1->setText(codec->toUnicode("설정"));
     ui->lb2->setText(codec->toUnicode("값"));
+}
+
+void Binder::defaultButtonClicked()
+{
+    ui->dspaceLE->setText("2");
+    ui->grdlat1LE->setText("37");
+    ui->grdlat2LE->setText("40");
+    ui->grdlon1LE->setText("126");
+    ui->grdlon2LE->setText("129");
+    ui->grdz1LE->setText("0.0");
+    ui->grdz2LE->setText("10.0");
+    ui->rstackLE->setText("100");
+    ui->tstackLE->setText("3.0");
+    ui->stackLE->setText("20");
+    ui->threshLE->setText("4");
+    ui->focusLE->setText("100");
 }
 
 void Binder::genButtonClicked()

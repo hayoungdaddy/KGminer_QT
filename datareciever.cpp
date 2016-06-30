@@ -1,11 +1,18 @@
 #include "datareciever.h"
 #include "ui_datareciever.h"
 
-DataReciever::DataReciever(CFG cfg, QWidget *parent) :
+DataReciever::DataReciever(CFG cfg, bool _korean, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DataReciever)
 {
     ui->setupUi(this);
+    codec = QTextCodec::codecForName( "utf8" );
+    korean = _korean;
+
+    if(korean)
+        setLanguageKo();
+    else
+        setLanguageEn();
 
     c = cfg;
 
@@ -33,6 +40,30 @@ DataReciever::DataReciever(CFG cfg, QWidget *parent) :
 DataReciever::~DataReciever()
 {
     delete ui;
+}
+
+void DataReciever::setLanguageEn()
+{
+    setWindowTitle("Extract data");
+    ui->stLB->setText("StartTime (GMT)");
+    ui->etLB->setText("EndTime (GMT)");
+    ui->extractButton->setText("Extract data");
+    ui->simulButton->setText("Select for a simulation");
+    ui->viewwaveform->setText("View waveform");
+    ui->resetButton->setText("Reset time");
+    ui->quitButton->setText("Quit");
+}
+
+void DataReciever::setLanguageKo()
+{
+    setWindowTitle(codec->toUnicode("데이터 추출"));
+    ui->stLB->setText(codec->toUnicode("시작시간 (GMT)"));
+    ui->etLB->setText(codec->toUnicode("종료시간 (GMT)"));
+    ui->extractButton->setText(codec->toUnicode("데이터 추출"));
+    ui->simulButton->setText(codec->toUnicode("실시간 시뮬레이션"));
+    ui->viewwaveform->setText(codec->toUnicode("파형보기"));
+    ui->resetButton->setText(codec->toUnicode("시간리셋"));
+    ui->quitButton->setText(codec->toUnicode("종료"));
 }
 
 void DataReciever::extracButtonClicked()
@@ -175,13 +206,15 @@ void DataReciever::extract()
     {
         if(file.size() == 0)
         {
-            QMessageBox::warning( this, "Information", "There is no data.\nPlease check raw data.");
-            return;
+            if(!korean) QMessageBox::warning( this, "Information", "There is no data.\nPlease check raw data.");
+            else QMessageBox::warning( this, "Information", codec->toUnicode("데이터가 없습니다.\n원시데이터를 확인하여 주시기 바랍니다."));
+            return;             
         }
         else
         {
             QMessageBox msgBox;
-            msgBox.setText("The data is ready.\nPlease check this data using <View waveform> button.");
+            if(!korean) msgBox.setText("The data is ready.\nPlease check this data using <View waveform> button.");
+            else msgBox.setText("데이터가 준비되었습니다.\n<파형보기> 버튼을 이용하여 데이터를 확인할 수 있습니다.");
             msgBox.exec();
             ui->viewwaveform->setEnabled(true);
         }

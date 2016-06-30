@@ -32,7 +32,7 @@ public slots:
     void loadTextFile();
 
 private:
-    Ui::PickList *PickList_ui;
+    Ui::PickList *ui;
     QTimer *checkdatetimer;
 
 private slots:

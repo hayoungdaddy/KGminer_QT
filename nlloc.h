@@ -44,6 +44,7 @@ private:
 
 private slots:
     void genButtonClicked();
+    void defaultButtonClicked();
     void svmbClicked();
     void mvmbClicked();
 

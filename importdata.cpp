@@ -131,7 +131,7 @@ void ImportData::openFileBrowser()
             ui->pb->setValue(i);
             ui->tableWidget->setRowCount(ui->tableWidget->rowCount()+1);
             ui->tableWidget->setItem(i, 0, new QTableWidgetItem(filteredFilenames[i]));
-            ui->tableWidget->item(i, 0)->setTextAlignment(Qt::AlignCenter);
+            //ui->tableWidget->item(i, 0)->setTextAlignment(Qt::AlignCenter);
             ui->tableWidget->setItem(i, 4, new QTableWidgetItem("View"));
             ui->tableWidget->item(i, 4)->setTextAlignment(Qt::AlignCenter);
 
@@ -288,9 +288,11 @@ void ImportData::readMseedFile(QString fileName, int i)
             + mstg->traces->network + "." + mstg->traces->station + "." + mstg->traces->location
             + "." + mstg->traces->channel + ".D." + start.toString("yyyy") + "." + QString::number(date.dayOfYear());
 
+    /*
     qDebug() << c.MSEEDDIR + "/" + start.toString("yyyy") + "/" + mstg->traces->network + "/" + mstg->traces->station + "/" + mstg->traces->channel + ".D/"
                 + mstg->traces->network + "." + mstg->traces->station + "." + mstg->traces->location
                 + "." + mstg->traces->channel + ".D." + start.toString("yyyy") + "." + QString::number(date.dayOfYear());
+                */
 
     //qDebug() << QString::number(mstg->traces->samplecnt);
 

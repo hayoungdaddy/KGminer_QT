@@ -3,9 +3,9 @@
 
 PickList::PickList(CFG cfg, QWidget *parent) :
     QFrame(parent),
-    PickList_ui(new Ui::PickList)
+    ui(new Ui::PickList)
 {
-    PickList_ui->setupUi(this);
+    ui->setupUi(this);
     c = cfg;
 
     today = QDate::currentDate();
@@ -21,12 +21,12 @@ PickList::PickList(CFG cfg, QWidget *parent) :
 
 PickList::~PickList()
 {
-    delete PickList_ui;
+    delete ui;
 }
 
 void PickList::clear()
 {
-    PickList_ui->textEdit->clear();
+    ui->textEdit->clear();
 }
 
 void PickList::checkdate()
@@ -55,10 +55,23 @@ void PickList::setup()
 
 void PickList::loadTextFile()
 {
+    /*
     QString line = pickProcess->readAllStandardOutput();
     line = line.simplified();
     QStringList splitS = line.split(" ");
-    PickList_ui->textEdit->append(splitS[4] + " " + splitS[5] + " " + splitS[6].left(4) + "/" + splitS[6].mid(4,2) + "/" + splitS[6].mid(6,2) + " " +
+    ui->textEdit->append(splitS[4] + " " + splitS[5] + " " + splitS[6].left(4) + "-" + splitS[6].mid(4,2) + "-" + splitS[6].mid(6,2) + " " +
             splitS[6].mid(8,2) + ":" + splitS[6].mid(10,2) + ":" + splitS[6].mid(12,6));
-}
+            */
+    QByteArray array = pickProcess->readAllStandardOutput();
+    QStringList strLines = QString(array).split("\n");
 
+    // 8 57 255 65960 SGP.HGZ.KS.-- ?1 20160414123551.860 10 0 0
+    foreach (QString line, strLines)
+    {
+        line = line.simplified();
+        line = line.section(' ', 4, 4) + " " + line.section(' ', 6, 6).left(4) + "-" + line.section(' ', 6, 6).mid(4,2)
+                + "-" + line.section(' ', 6, 6).mid(6,2) + " " + line.section(' ', 6, 6).mid(8,2)
+                + ":" + line.section(' ', 6, 6).mid(10,2) + ":" + line.section(' ', 6, 6).mid(12,6);
+        if(!line.startsWith(" ")) ui->textEdit->append(line);
+    }
+}

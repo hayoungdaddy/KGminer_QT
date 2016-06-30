@@ -16,13 +16,19 @@ class DataReciever : public QDialog
     Q_OBJECT
 
 public:
-    explicit DataReciever(CFG cfg, QWidget *parent = 0);
+    explicit DataReciever(CFG cfg, bool _korean = 0, QWidget *parent = 0);
     ~DataReciever();
 
     CFG c;
 
+    bool korean;
+    void setLanguageEn();
+    void setLanguageKo();
+
 private:
     Ui::DataReciever *ui;
+
+    QTextCodec *codec;
 
 public slots:
     void extract();

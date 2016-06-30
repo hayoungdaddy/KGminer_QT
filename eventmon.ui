@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1722</width>
+    <width>1740</width>
     <height>461</height>
    </rect>
   </property>
@@ -431,7 +431,7 @@
   <widget class="QPushButton" name="quitButton">
    <property name="geometry">
     <rect>
-     <x>1610</x>
+     <x>1620</x>
      <y>5</y>
      <width>101</width>
      <height>31</height>
@@ -574,27 +574,27 @@
    </column>
    <column>
     <property name="text">
-     <string>Lat.</string>
+     <string>LAT.</string>
     </property>
    </column>
    <column>
     <property name="text">
-     <string>Lon.</string>
+     <string>LON.</string>
     </property>
    </column>
    <column>
     <property name="text">
-     <string>Depth(Km)</string>
+     <string>DEPTH (Km)</string>
     </property>
    </column>
    <column>
     <property name="text">
-     <string>Time</string>
+     <string>TIME</string>
     </property>
    </column>
    <column>
     <property name="text">
-     <string>Algorithm</string>
+     <string>ALGORITHM</string>
     </property>
    </column>
    <column>
@@ -608,7 +608,7 @@
     <rect>
      <x>1260</x>
      <y>40</y>
-     <width>451</width>
+     <width>471</width>
      <height>411</height>
     </rect>
    </property>
@@ -623,22 +623,22 @@
    </attribute>
    <column>
     <property name="text">
-     <string>Station</string>
+     <string>STATION</string>
     </property>
    </column>
    <column>
     <property name="text">
-     <string>Channel</string>
+     <string>CHANNEL</string>
     </property>
    </column>
    <column>
     <property name="text">
-     <string>Pick Time</string>
+     <string>PICK TIME</string>
     </property>
    </column>
    <column>
     <property name="text">
-     <string>Algorithm</string>
+     <string>ALGORITHM</string>
     </property>
    </column>
   </widget>

@@ -88,9 +88,9 @@ void EventMon::setEventTable()
         ui->eventTable->setRowCount(ui->eventTable->rowCount()+1);
         ui->eventTable->setItem(i, 0, new QTableWidgetItem(evid));
         ui->eventTable->setItem(i, 1, new QTableWidgetItem(evname));
-        ui->eventTable->setItem(i, 2, new QTableWidgetItem("Link"));
-        ui->eventTable->setItem(i, 3, new QTableWidgetItem("View"));
-        ui->eventTable->setItem(i, 4, new QTableWidgetItem("Delete"));
+        ui->eventTable->setItem(i, 2, new QTableWidgetItem("LINK"));
+        ui->eventTable->setItem(i, 3, new QTableWidgetItem("VIEW"));
+        ui->eventTable->setItem(i, 4, new QTableWidgetItem("DELETE"));
         ui->eventTable->item(i, 0)->setTextAlignment(Qt::AlignCenter);
         ui->eventTable->item(i, 1)->setTextAlignment(Qt::AlignCenter);
         ui->eventTable->item(i, 2)->setTextAlignment(Qt::AlignCenter);
@@ -140,7 +140,7 @@ void EventMon::setAssocTable(QString orid)
 {
     ui->assocTable->verticalHeader()->setVisible(false);
     ui->assocTable->setColumnWidth(2, 196);
-    ui->assocTable->setColumnWidth(3, 80);
+    ui->assocTable->setColumnWidth(3, 95);
 
     model->setQuery("SELECT arid, orid, sta, chan, time, phase, p_algorithm, lddate FROM assoc WHERE orid = " + orid);
 

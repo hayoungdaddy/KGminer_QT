@@ -147,7 +147,7 @@ void ViewStation::viewstabuttonClicked()
     QString cmd;
     cmd = "grep -v File " + c.PARAMSDIR + "/sta.info | grep -v Desc > /usr/local/tomcat/webapps/viewstaloc/sta.info";
     system(cmd.toLatin1().data());
-    cmd = "firefox 127.0.0.1:8080/viewstaloc/index.jsp &";
+    cmd = "firefox 127.0.0.1:8080/viewstaloc &";
     system(cmd.toLatin1().data());
 }
 

@@ -60,6 +60,8 @@ void FileGenerator::pick_FP_gen(CFG c, STAFILE stafile)
 void FileGenerator::hinv_gen(CFG c, STAFILE stafile)
 {
     /* generate KGminer.hinv file. */
+    // GOS1  KS ZHGZ  33 18.0180N126 12.6000E 0.0      A 0.00  0.00  0.00  0.00 1  0.00-- 1.000
+    // SSSSS NN cCCC LLL LL.LLLLNSSS SS.SSSSE EEEEEEEE A 0.00
     QFile file;
     file.setFileName(c.PARAMSDIR + "/KGminer.hinv");
 
@@ -71,19 +73,30 @@ void FileGenerator::hinv_gen(CFG c, STAFILE stafile)
 
         for(int i=0;i<scnCount;i++)
         {
-            QString size = stafile.netName[i];
-            QString temp = stafile.chanName[i].right(1);
-            if(size.length() == 2)
-            {
-                stream << stafile.staName[i] << "   " << stafile.netName[i] << " " << temp << stafile.chanName[i] << "  " <<
-                          stafile.latM[i] << stafile.lonM[i] << " " << stafile.elevM[i] << "0.0   A 0.00  0.00  0.00  0.00 1  0.00-- 1.000" << "\n";
-            }
-            else if(size.length() == 3)
-            {
-                stream << stafile.staName[i] << "  " << stafile.netName[i] << " " << temp << stafile.chanName[i] << "  " <<
-                          stafile.latM[i] << stafile.lonM[i] << " " << stafile.elevM[i] << "0.0   A 0.00  0.00  0.00  0.00 1  0.00-- 1.000" << "\n";
-            }
-            //qDebug() << size;
+            QString sta, net, chan, lat, lon, elev;
+
+            if(stafile.staName[i].length() == 1) sta = stafile.staName[i] + "   ";
+            else if(stafile.staName[i].length() == 2) sta = stafile.staName[i] + "   ";
+            else if(stafile.staName[i].length() == 3) sta = stafile.staName[i] + "  ";
+            else if(stafile.staName[i].length() == 4) sta = stafile.staName[i] + " ";
+            else if(stafile.staName[i].length() == 5) sta = stafile.staName[i];
+
+            //qDebug() << QString::number(stafile.staName[i].length());
+            if(stafile.netName[i].length() == 2) net = " " + stafile.netName[i];
+            else if(stafile.netName[i].length() == 3) net = stafile.netName[i];
+
+            chan = stafile.chanName[i].right(1) + stafile.chanName[i];
+            elev = stafile.elevM[i] + ".0";
+
+            if(elev.length() == 2) elev = "0.0     ";
+            else if(elev.length() == 3) elev = elev + "     ";
+            else if(elev.length() == 4) elev = elev + "    ";
+            else if(elev.length() == 5) elev = elev + "   ";
+            else if(elev.length() == 6) elev = elev + "  ";
+            else if(elev.length() == 7) elev = elev + " ";
+
+            stream << sta << net << " " << chan << "  " << stafile.latM[i] << stafile.lonM[i] << " " << elev << " "
+                      << "A 0.00  0.00  0.00  0.00 1  0.00-- 1.000" << "\n";
         }
 
         file.close() ;

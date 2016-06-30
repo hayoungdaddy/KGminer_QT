@@ -237,6 +237,12 @@ void MainWindow::restartProcess()
         {
             cmd = cfg.BINDIR + "/restart " + ewmoduleinfo.prID[i];
             system(cmd.toLatin1().data());
+
+            if(parameterFileName.startsWith("tankplayer"))
+            {
+                picklist->clear();
+                picklist->setup();
+            }
             break;
         }
     }
@@ -261,7 +267,7 @@ void MainWindow::changeParameterDialogShow()
     }
     else if(parameterFileName.startsWith("tankplayer"))
     {
-        datareciever = new DataReciever( cfg, this );
+        datareciever = new DataReciever( cfg, korean, this );
         datareciever->reset();
         datareciever->show();
     }
@@ -354,6 +360,8 @@ void MainWindow::actionEnglishClicked()
     ui->actionKorean->setText("Korean");
     ui->actionExit->setText("Exit");
 
+    setWindowTitle("KGminer Control Panel");
+
     korean = false;
 }
 
@@ -380,6 +388,8 @@ void MainWindow::actionKoreanClicked()
     ui->actionEnglish->setText(codec->toUnicode("영어"));
     ui->actionKorean->setText(codec->toUnicode("한국어"));
     ui->actionExit->setText(codec->toUnicode("프로그램 종료"));
+
+    setWindowTitle(codec->toUnicode("KGminer 제어판"));
 
     korean = true;
 }

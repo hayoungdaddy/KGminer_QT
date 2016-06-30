@@ -27,6 +27,7 @@ NLLoc::NLLoc(CFG cfg, bool _korean, QString evid, QString orid, QString num, QWi
     connect(ui->mvmr, SIGNAL(clicked()), this, SLOT(mvmbClicked()));
     connect(ui->quitButton, SIGNAL(clicked()), this, SLOT(accept()));
     connect(ui->genButton, SIGNAL(clicked()), this, SLOT(genButtonClicked()));
+    connect(ui->defaultButton, SIGNAL(clicked()), this, SLOT(defaultButtonClicked()));
 }
 
 NLLoc::~NLLoc()
@@ -38,6 +39,7 @@ void NLLoc::setLanguageEn()
 {
     setWindowTitle("Config NLLoc Parameters");
     ui->genButton->setText("Generate");
+    ui->defaultButton->setText("Default");
     ui->quitButton->setText("Quit");
 }
 
@@ -45,6 +47,7 @@ void NLLoc::setLanguageKo()
 {
     setWindowTitle(codec->toUnicode("NLLoc 설정 값 변경"));
     ui->genButton->setText(codec->toUnicode("변경"));
+    ui->defaultButton->setText(codec->toUnicode("기본값"));
     ui->quitButton->setText(codec->toUnicode("취소"));
 }
 
@@ -193,6 +196,16 @@ void NLLoc::setup()
             }
         }
     }
+}
+
+void NLLoc::defaultButtonClicked()
+{
+    ui->vngxLE->setText("6"); ui->vngyLE->setText("6"); ui->vngzLE->setText("2");
+    ui->vogxLE->setText("-2.5"); ui->vogyLE->setText("-2.5"); ui->vogzLE->setText("-0.5");
+    ui->vgsxLE->setText("1"); ui->vgsyLE->setText("1"); ui->vgszLE->setText("1");
+    ui->ngxLE->setText("321"); ui->ngyLE->setText("321"); ui->ngzLE->setText("101");
+    ui->ogxLE->setText("-1.6"); ui->ogyLE->setText("-1.6"); ui->ogzLE->setText("-0.5");
+    ui->gsxLE->setText("0.01"); ui->gsyLE->setText("0.01"); ui->gszLE->setText("0.01");
 }
 
 void NLLoc::genButtonClicked()
