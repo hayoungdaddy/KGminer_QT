@@ -23,6 +23,8 @@ typedef struct
     QStringList latM;
     QStringList lonM;
     QStringList elevM;
+    QString minLatforBinder, maxLatforBinder, minLonforBinder, maxLonforBinder;
+    QString avgLatforNLLoc, avgLonforNLLoc;
 } STAFILE;
 
 typedef struct
@@ -39,6 +41,7 @@ typedef struct
     QString PICKDIR;
     QString TMPDIR;
     QString LATENCYSOCKET;
+    QString LOCDIR;
 } CFG;
 
 typedef struct

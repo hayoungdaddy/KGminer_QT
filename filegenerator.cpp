@@ -9,6 +9,105 @@ FileGenerator::~FileGenerator()
 {
 }
 
+STAFILE FileGenerator::makeSTAFILE(CFG c, bool event)
+{
+    STAFILE stafile;
+    QFile file;
+
+    double minlat, maxlat, minlon, maxlon, avglat, avglon;
+    int scnCount;
+
+    if(!event) file.setFileName(c.PARAMSDIR + "/sta.info");
+    else if(event) file.setFileName(c.EVENTDIR + "/NEWEVENT/sta.info");
+
+    if( file.open( QIODevice::ReadOnly ) )
+    {
+        QTextStream stream(&file);
+        QString line;
+
+        while(!stream.atEnd())
+        {
+            line = stream.readLine();
+
+            if(line.startsWith("#") || line.isNull() || line.startsWith("["))
+                continue;
+            else if(line.startsWith("Filename"))
+            {
+                stafile.filename = line.section(":",1,1);
+                continue;
+            }
+            else if(line.startsWith("Description"))
+            {
+                stafile.description = line.section(":",1,1);
+                continue;
+            }
+            else
+            {
+                stafile.staName << line.section(" ", 0, 0);
+                stafile.chanName << line.section(" ", 1, 1);
+                stafile.locName << line.section(" ", 2, 2);
+                stafile.netName << line.section(" ", 3, 3);
+                stafile.latD << line.section(" ", 4, 4);
+                stafile.lonD << line.section(" ", 5, 5);
+                stafile.elevKm << line.section(" ", 6, 6);
+            }
+        }
+
+        file.close();
+
+        scnCount = stafile.staName.count();
+
+        minlat = 999; maxlat = 0; minlon = 999; maxlon = 0;
+
+        for(int i=0;i<scnCount;i++)
+        {
+            double fx, fy, latd, lond;
+            int x, y;
+
+            fx = stafile.latD[i].toDouble();
+            fy = stafile.lonD[i].toDouble();
+            if(fx < minlat) minlat = fx;
+            if(fx > maxlat) maxlat = fx;
+            if(fy < minlon) minlon = fy;
+            if(fy > maxlon) maxlon = fy;
+
+            x = stafile.latD[i].section('.',0,0).toInt();
+            y = stafile.lonD[i].section('.',0,0).toInt();
+            latd = 60 * (fx - x);
+            lond = 60 * (fy - y);
+
+            QString temp, temp2, temp3, temp4;
+            temp = temp.setNum(x, 10);
+            temp2 = temp2.setNum(latd, 'f', 4);
+            temp3 = temp3.setNum(y, 10);
+            temp4 = temp4.setNum(lond, 'f', 4);
+
+            if(temp2.toFloat() < 10)
+                stafile.latM << temp + "  " + temp2 + "N";
+            else
+                stafile.latM << temp + " " + temp2 + "N";
+
+            if(temp4.toFloat() < 10)
+                stafile.lonM << temp3 + "  " + temp4 + "E";
+            else
+                stafile.lonM << temp3 + " " + temp4 + "E";
+            stafile.elevM << stafile.elevKm[i].section('.',1,1);
+        }
+
+        avglat = (minlat + maxlat) / 2;
+        avglon = (minlon + maxlon) / 2;
+        stafile.avgLatforNLLoc = stafile.avgLatforNLLoc.setNum(avglat, 'f', 6);
+        stafile.avgLonforNLLoc = stafile.avgLonforNLLoc.setNum(avglon, 'f', 6);
+        minlat = minlat - 1; maxlat = maxlat + 2; minlon = minlon - 1; maxlon = maxlon + 2;
+        stafile.minLatforBinder = stafile.minLatforBinder.setNum(minlat, 'f', 0);
+        stafile.maxLatforBinder = stafile.maxLatforBinder.setNum(maxlat, 'f', 0);
+        stafile.minLonforBinder = stafile.minLonforBinder.setNum(minlon, 'f', 0);
+        stafile.maxLonforBinder = stafile.maxLonforBinder.setNum(maxlon, 'f', 0);
+    }
+
+    return stafile;
+}
+
 void FileGenerator::pick_ew_gen(CFG c, STAFILE stafile)
 {
     /* generate pick_ew.KGminer file. */
@@ -126,7 +225,7 @@ void FileGenerator::tanklist_gen(CFG c, STAFILE stafile)
     }
 }
 
-void FileGenerator::binder_gen(CFG c, QString minLatforBinder, QString maxLatforBinder, QString minLonforBinder, QString maxLonforBinder)
+void FileGenerator::binder_gen(CFG c, STAFILE stafile)
 {
     /* generate binder_ew.d file. */
     QFile file;
@@ -176,8 +275,8 @@ void FileGenerator::binder_gen(CFG c, QString minLatforBinder, QString maxLatfor
         stream << "# Define association grid, set stacking parameters." << "\n";
         stream << "#--------------------------------------------------" << "\n";
         stream << "dspace   2" << "\n";
-        stream << "grdlat   " << minLatforBinder << "    " << maxLatforBinder << "\n";
-        stream << "grdlon   " << minLonforBinder << "    " << maxLonforBinder << "\n";
+        stream << "grdlat   " << stafile.minLatforBinder << "    " << stafile.maxLatforBinder << "\n";
+        stream << "grdlon   " << stafile.minLonforBinder << "    " << stafile.maxLonforBinder << "\n";
         stream << "grdz     0.0    10.0     " << "\n\n";
         stream << "rstack   100" << "\n";
         stream << "tstack   3.0" << "\n";
@@ -265,7 +364,7 @@ void FileGenerator::ew2mseed_gen(CFG c, STAFILE stafile)
 // event == true : c.EVENTDIR + "/NEWEVENT/NEWORIGIN/NLLOC/" is basic dir
 // event == false : c.PARAMSDIR + "/NLLOC/1~3/" is basic dir
 // nlloc_gen function is making files for SVM mode only
-void FileGenerator::nlloc_gen(bool event, CFG c, STAFILE stafile, QString avgLat, QString avgLon)
+void FileGenerator::nlloc_gen(bool event, CFG c, STAFILE stafile)
 {
     QString mainDir;
 
@@ -275,16 +374,16 @@ void FileGenerator::nlloc_gen(bool event, CFG c, STAFILE stafile, QString avgLat
         mainDir = c.PARAMSDIR + "/NLLOC";
 
     double fst, lst;
-    fst = avgLat.toDouble()-2;
-    lst = avgLat.toDouble()+2;
+    fst = stafile.avgLatforNLLoc.toDouble()-2;
+    lst = stafile.avgLatforNLLoc.toDouble()+2;
 
     int scnCount = stafile.staName.count();
 
     if(event)
     {
         gen_type(mainDir + "/type");
-        gen_gridP(mainDir + "/grid_p.in", stafile, avgLat, avgLon, fst, lst, scnCount, c.EVENTDIR + "/NEWEVENT/NEWORIGIN/NLLOC");
-        gen_nllocIn(mainDir + "/nlloc.in", avgLat, avgLon, fst, lst, c.EVENTDIR + "/NEWEVENT/NEWORIGIN/picklist" ,
+        gen_gridP(mainDir + "/grid_p.in", stafile, fst, lst, scnCount, c.EVENTDIR + "/NEWEVENT/NEWORIGIN/NLLOC");
+        gen_nllocIn(mainDir + "/nlloc.in", stafile.avgLatforNLLoc, stafile.avgLonforNLLoc, fst, lst, c.EVENTDIR + "/NEWEVENT/NEWORIGIN/picklist" ,
                     c.EVENTDIR + "/NEWEVENT/NEWORIGIN/NLLOC", c.EVENTDIR + "/NEWEVENT/NEWORIGIN/LOC/NLLOC");
     }
     else
@@ -292,9 +391,9 @@ void FileGenerator::nlloc_gen(bool event, CFG c, STAFILE stafile, QString avgLat
         for(int j=1;j<=3;j++)
         {
             gen_type(mainDir + "/" + QString::number(j) + "/type");
-            gen_gridP(mainDir + "/" + QString::number(j) + "/grid_p.in", stafile, avgLat, avgLon, fst, lst, scnCount,
+            gen_gridP(mainDir + "/" + QString::number(j) + "/grid_p.in", stafile, fst, lst, scnCount,
                       c.EVENTDIR + "/EVID/ORID/NLLOC");
-            gen_nllocIn(mainDir + "/" + QString::number(j) + "/nlloc.in", avgLat, avgLon, fst, lst,
+            gen_nllocIn(mainDir + "/" + QString::number(j) + "/nlloc.in", stafile.avgLatforNLLoc, stafile.avgLonforNLLoc, fst, lst,
                         c.EVENTDIR + "/EVID/ORID/picklist" , c.EVENTDIR + "/EVID/ORID/NLLOC",
                         c.EVENTDIR + "/EVID/ORID/LOC/NLLOC");
         }
@@ -313,7 +412,7 @@ void FileGenerator::gen_type(QString filename)
     }
 }
 
-void FileGenerator::gen_gridP(QString filename, STAFILE stafile, QString avgLat, QString avgLon, double fst, double lst, int scnCount, QString path)
+void FileGenerator::gen_gridP(QString filename, STAFILE stafile, double fst, double lst, int scnCount, QString path)
 {
     QFile file;
     file.setFileName(filename);
@@ -321,7 +420,7 @@ void FileGenerator::gen_gridP(QString filename, STAFILE stafile, QString avgLat,
     {
         QTextStream stream( &file ) ;
         stream << "CONTROL 1 54321" << "\n";
-        stream << "TRANS LAMBERT WGS-84 " << avgLat << " " << avgLon << " " << QString::number(fst) << " " << QString::number(lst) << " 0.0" << "\n";
+        stream << "TRANS LAMBERT WGS-84 " << stafile.avgLatforNLLoc << " " << stafile.avgLonforNLLoc << " " << QString::number(fst) << " " << QString::number(lst) << " 0.0" << "\n";
         stream << "VGOUT " + path + "/model/layer" << "\n";
         stream << "VGTYPE P" << "\n";
         stream << "VGGRID  6 6 2 -2.5 -2.5 -0.5 1 1 1  SLOW_LEN" << "\n";

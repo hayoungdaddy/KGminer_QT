@@ -115,10 +115,12 @@ void Binder::setLanguageKo()
 void Binder::defaultButtonClicked()
 {
     ui->dspaceLE->setText("2");
+    /*
     ui->grdlat1LE->setText("37");
     ui->grdlat2LE->setText("40");
     ui->grdlon1LE->setText("126");
     ui->grdlon2LE->setText("129");
+    */
     ui->grdz1LE->setText("0.0");
     ui->grdz2LE->setText("10.0");
     ui->rstackLE->setText("100");

@@ -85,6 +85,11 @@ CFG Util::readCfg()
                 cfg.LATENCYSOCKET = line.section("=",1,1);
                 continue;
             }
+            else if(line.startsWith("LOCDIR"))
+            {
+                cfg.LOCDIR = line.section("=",1,1);
+                continue;
+            }
         }
 
         file.close();

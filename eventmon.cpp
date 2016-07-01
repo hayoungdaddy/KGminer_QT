@@ -239,10 +239,12 @@ void EventMon::clickEventTable(int row, int col)
             QString dirName = c.EVENTDIR + "/" + ui->eventTable->item(row, 0)->text();
             QDir dir(dirName);
 
-            if(dir.exists())
-            {
-                dir.removeRecursively();
-            }
+            if(dir.exists()) dir.removeRecursively();
+
+            dirName = c.LOCDIR + "/" + ui->eventTable->item(row, 0)->text();
+            dir.setPath(dirName);
+
+            if(dir.exists()) dir.removeRecursively();
 
             setup();
         }

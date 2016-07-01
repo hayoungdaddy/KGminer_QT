@@ -346,6 +346,23 @@ void MakeOrigin::on_inputDBButton_clicked()
     cmd = "mv " + c.EVENTDIR + "/" + EVID + "/NEWORIGIN " + c.EVENTDIR + "/" + EVID + "/" + QString::number(maxorid);
     system(cmd.toLatin1().data());
 
+    // to /media/sf_KGminer/EVENTLOC/EVID/ORID/location.txt
+    // 2016-03-25 15:32:03 37.353215 127.534312
+    QDir d;
+    QString locdir = c.LOCDIR + "/" + EVID;
+    d.setPath(locdir);
+    if(!d.exists()) d.mkpath(".");
+    locdir = c.LOCDIR + "/" + EVID + "/" + QString::number(maxorid);
+    d.setPath(locdir);
+    if(!d.exists()) d.mkpath(".");
+    file.setFileName(c.LOCDIR + "/" + EVID + "/" + QString::number(maxorid) + "/location.txt");
+    if( file.open( QIODevice::WriteOnly ) )
+    {
+        QTextStream stream( &file ) ;
+        stream <<  EVNAME << " " << ui->latLE->text() << " " << ui->lonLE->text();
+        file.close() ;
+    }
+
     QMessageBox msgBox;
     if(!korean) msgBox.setText("Added new origin.");
     else msgBox.setText(codec->toUnicode("신규 Origin 저장 완료."));

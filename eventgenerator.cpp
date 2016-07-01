@@ -217,6 +217,23 @@ void EventGenerator::prParser(QString evname)
         model->setQuery(insertQuery);
 
         file.close();
+
+        // to /media/sf_KGminer/EVENTLOC/EVID/ORID/location.txt
+        // 2016-03-25 15:32:03 37.353215 127.534312
+        QDir d;
+        QString locdir = c.LOCDIR + "/" + QString::number(evid);
+        d.setPath(locdir);
+        if(!d.exists()) d.mkpath(".");
+        locdir = c.LOCDIR + "/" + QString::number(evid) + "/" + QString::number(orid);
+        d.setPath(locdir);
+        if(!d.exists()) d.mkpath(".");
+        file.setFileName(c.LOCDIR + "/" + QString::number(evid) + "/" + QString::number(orid) + "/location.txt");
+        if( file.open( QIODevice::WriteOnly ) )
+        {
+            QTextStream stream( &file ) ;
+            stream <<  pickinfo.evName << " " << lat << " " << lon;
+            file.close() ;
+        }
     }
 
     /* get data using qmerge */

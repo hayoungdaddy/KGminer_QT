@@ -273,106 +273,15 @@ void ConfigStation::genButtonClicked()
 
     STAFILE stafile;
 
-    QString minLatforBinder, maxLatforBinder, minLonforBinder, maxLonforBinder;
-    QString avgLatforNLLoc, avgLonforNLLoc;
-    double minlat, maxlat, minlon, maxlon, avglat, avglon;
-
-    int scnCount;
-    file.setFileName(c.PARAMSDIR + "/sta.info");
-
-    if( file.open( QIODevice::ReadOnly ) )
-    {
-        QTextStream stream(&file);
-        QString line;
-
-        while(!stream.atEnd())
-        {
-            line = stream.readLine();
-
-            if(line.startsWith("#") || line.isNull() || line.startsWith("["))
-                continue;
-            else if(line.startsWith("Filename"))
-            {
-                stafile.filename = line.section(":",1,1);
-                continue;
-            }
-            else if(line.startsWith("Description"))
-            {
-                stafile.description = line.section(":",1,1);
-                continue;
-            }
-            else
-            {
-                stafile.staName << line.section(" ", 0, 0);
-                stafile.chanName << line.section(" ", 1, 1);
-                stafile.locName << line.section(" ", 2, 2);
-                stafile.netName << line.section(" ", 3, 3);
-                stafile.latD << line.section(" ", 4, 4);
-                stafile.lonD << line.section(" ", 5, 5);
-                stafile.elevKm << line.section(" ", 6, 6);
-            }
-        }
-
-        file.close();
-
-        scnCount = stafile.staName.count();
-
-        minlat = 999; maxlat = 0; minlon = 999; maxlon = 0;
-
-        for(int i=0;i<scnCount;i++)
-        {
-            double fx, fy, latd, lond;
-            int x, y;
-
-            fx = stafile.latD[i].toDouble();
-            fy = stafile.lonD[i].toDouble();
-            if(fx < minlat) minlat = fx;
-            if(fx > maxlat) maxlat = fx;
-            if(fy < minlon) minlon = fy;
-            if(fy > maxlon) maxlon = fy;
-
-            x = stafile.latD[i].section('.',0,0).toInt();
-            y = stafile.lonD[i].section('.',0,0).toInt();
-            latd = 60 * (fx - x);
-            lond = 60 * (fy - y);
-
-            QString temp, temp2, temp3, temp4;
-            temp = temp.setNum(x, 10);
-            temp2 = temp2.setNum(latd, 'f', 4);
-            temp3 = temp3.setNum(y, 10);
-            temp4 = temp4.setNum(lond, 'f', 4);
-
-            if(temp2.toFloat() < 10)
-                stafile.latM << temp + "  " + temp2 + "N";
-            else
-                stafile.latM << temp + " " + temp2 + "N";
-
-            if(temp4.toFloat() < 10)
-                stafile.lonM << temp3 + "  " + temp4 + "E";
-            else
-                stafile.lonM << temp3 + " " + temp4 + "E";
-            stafile.elevM << stafile.elevKm[i].section('.',1,1);
-        }
-
-        avglat = (minlat + maxlat) / 2;
-        avglon = (minlon + maxlon) / 2;
-        avgLatforNLLoc = avgLatforNLLoc.setNum(avglat, 'f', 6);
-        avgLonforNLLoc = avgLonforNLLoc.setNum(avglon, 'f', 6);
-        minlat = minlat - 1; maxlat = maxlat + 2; minlon = minlon - 1; maxlon = maxlon + 2;
-        minLatforBinder = minLatforBinder.setNum(minlat, 'f', 0);
-        maxLatforBinder = maxLatforBinder.setNum(maxlat, 'f', 0);
-        minLonforBinder = minLonforBinder.setNum(minlon, 'f', 0);
-        maxLonforBinder = maxLonforBinder.setNum(maxlon, 'f', 0);
-    }
-
     FileGenerator *gen = new FileGenerator;
+    stafile = gen->makeSTAFILE(c, false);
     gen->pick_ew_gen(c, stafile);
     gen->pick_FP_gen(c, stafile);
     gen->hinv_gen(c, stafile);
     gen->tanklist_gen(c, stafile);
-    gen->binder_gen(c, minLatforBinder, maxLatforBinder, minLonforBinder, maxLonforBinder);
+    gen->binder_gen(c, stafile);
     gen->ew2mseed_gen(c, stafile);
-    gen->nlloc_gen(false, c, stafile, avgLatforNLLoc, avgLonforNLLoc);
+    gen->nlloc_gen(false, c, stafile);
 
     QMessageBox msgBox;
     if(!korean) msgBox.setText("Staions Info. file generated and loaded.");

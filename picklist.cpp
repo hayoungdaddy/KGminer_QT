@@ -46,6 +46,13 @@ void PickList::setup()
     month = today.toString("MM");
     day = today.toString("dd");
     QString pickfile = c.PICKDIR + "/picks." + year + month + day;
+    QFile file;
+    file.setFileName(pickfile);
+    if(!file.exists())
+    {
+        QString cmd = "touch " + pickfile;
+        system(cmd.toLatin1().data());
+    }
     QString program = "tail";
     QStringList arguments;
     arguments << "-0f" << pickfile;
